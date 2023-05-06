@@ -1,7 +1,14 @@
-from .aux import update_sys_path
+from .aux import update_sys_path, posix_redirect_output, wall_timer
+from .discovery import disc_benchmarks
+from .run import _run
 
-import socket
 import os
+import sys
+import tempfile
+import struct
+import json
+import time
+
 
 def recvall(sock, size):
     """
@@ -17,7 +24,7 @@ def recvall(sock, size):
     return data
 
 
-def run_server(args):
+def _run_server(args):
     import io
     import signal
     import socket
@@ -92,7 +99,7 @@ def run_server(args):
                     with posix_redirect_output(stdout_file, permanent=True):
                         try:
                             os.chdir(cwd)
-                            main_run(run_args)
+                            _run(run_args)
                             exitcode = 0
                         except BaseException:
                             import traceback

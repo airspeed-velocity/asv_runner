@@ -1,10 +1,10 @@
 from ._base import Benchmark, _get_first_attr
+from ..aux import wall_timer
 
 import re
 import sys
 import timeit
 
-wall_timer = timeit.default_timer
 
 class TimeBenchmark(Benchmark):
     """

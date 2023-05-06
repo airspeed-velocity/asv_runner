@@ -1,8 +1,12 @@
 import re
+import os
+import math
 import inspect
 import itertools
 import textwrap
 from hashlib import sha256
+from collections import Counter
+import cProfile as profile
 
 def _get_attr(source, name, ignore_case=False):
     if ignore_case:

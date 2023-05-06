@@ -1,6 +1,9 @@
 from .time import TimeBenchmark
+from ._base import _get_first_attr
 import textwrap
 import re
+import subprocess
+import sys
 
 class _SeparateProcessTimer:
     subprocess_tmpl = textwrap.dedent('''

@@ -1,4 +1,5 @@
 import sys
+import os
 
 ON_PYPY = hasattr(sys, 'pypy_version_info')
 

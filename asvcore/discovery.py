@@ -5,8 +5,8 @@ import importlib
 import pkgutil
 import inspect
 import json
+import traceback
 
-# XXX: This doesn't make sense here
 from .benchmarks import benchmark_types
 
 def _get_benchmark(attr_name, module, klass, func):
@@ -60,7 +60,7 @@ def disc_modules(module_name, ignore_import_errors=False):
 
     if getattr(module, '__path__', None):
         for _, name, _ in pkgutil.iter_modules(module.__path__, module_name + '.'):
-            for item in disc_modules(name, ignore_import_errors=ignore_import_errors):
+            for item in disc_modules(name, ignore_import_errors):
                 yield item
 
 
@@ -87,9 +87,9 @@ def disc_benchmarks(root, ignore_import_errors=False):
                     not inspect.isabstract(module_attr)):
                 for name, class_attr in inspect.getmembers(module_attr):
                     if (inspect.isfunction(class_attr) or
-                            inspect.ismethod(class_attr)):
-                        benchmark = _get_benchmark(name, module, module_attr,
-                                                   class_attr)
+                            inspect.ismethod(
+                                class_attr)):
+                        benchmark = _get_benchmark(name, module, module_attr, class_attr)
                         if benchmark is not None:
                             yield benchmark
             elif inspect.isfunction(module_attr):

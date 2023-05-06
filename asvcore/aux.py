@@ -1,9 +1,12 @@
 import sys
 import os
 import tempfile
+import timeit
 import importlib
 import contextlib
+from .benchmarks._maxrss import set_cpu_affinity
 
+wall_timer = timeit.default_timer
 
 class SpecificImporter:
     """
