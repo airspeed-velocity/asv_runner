@@ -16,3 +16,5 @@ class TrackBenchmark(Benchmark):
 
     def run(self, *param):
         return self.func(*param)
+
+export_as_benchmark = [ TrackBenchmark ]

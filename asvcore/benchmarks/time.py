@@ -158,3 +158,5 @@ class TimeBenchmark(Benchmark):
                 break
 
         return samples, number
+
+export_as_benchmark = [ TimeBenchmark ]

@@ -52,3 +52,6 @@ class TimerawBenchmark(TimeBenchmark):
 
     def do_profile(self, filename=None):
         raise ValueError("Raw timing benchmarks cannot be profiled")
+
+
+export_as_benchmark = [ TimerawBenchmark ]

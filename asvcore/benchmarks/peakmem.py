@@ -19,3 +19,5 @@ class PeakMemBenchmark(Benchmark):
     def run(self, *param):
         self.func(*param)
         return get_maxrss()
+
+export_as_benchmark = [ PeakMemBenchmark ]
