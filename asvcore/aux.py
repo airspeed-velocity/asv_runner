@@ -1,6 +1,8 @@
 import sys
 import os
 import tempfile
+import importlib
+import contextlib
 
 
 class SpecificImporter:
@@ -33,6 +35,7 @@ def update_sys_path(root):
                                              os.path.dirname(root)))
 
 
+@contextlib.contextmanager
 def posix_redirect_output(filename=None, permanent=True):
     """
     Redirect stdout/stderr to a file, using posix dup2.
@@ -82,3 +85,12 @@ def recvall(sock, size):
             raise RuntimeError("did not receive data from socket "
                                "(size {}, got only {!r})".format(size, data))
     return data
+
+
+def set_cpu_affinity_from_params(extra_params):
+    affinity_list = extra_params.get('cpu_affinity', None)
+    if affinity_list is not None:
+        try:
+            set_cpu_affinity(affinity_list)
+        except BaseException as exc:
+            print(f"asv: setting cpu affinity {affinity_list !r} failed: {exc !r}")
