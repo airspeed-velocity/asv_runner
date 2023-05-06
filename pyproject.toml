@@ -1,0 +1,35 @@
+[tool.pdm]
+
+[project]
+name = "asvcore"
+description = "Core Python benchmark code for ASV"
+authors = [
+    { name = "Rohit Goswami", email = "rog32@hi.is" },
+]
+maintainers = [
+    { name = "Rohit Goswami", email = "rog32@hi.is" },
+]
+dynamic = [
+    "version",
+]
+dependencies = [] # Make sure there's nothing here
+requires-python = ">=3.7"
+readme = "README.md"
+license = { text = "MIT" }
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[tool.ruff]
+line-length = 99
+extend-ignore = [
+    "E741", # Do not use variables named 'I', 'O', or 'l'
+]
+
+[tool.isort]
+line_length = 99
+only_sections = true
+
+[tool.setuptools_scm]
+write_to = "asv/_version.py"
