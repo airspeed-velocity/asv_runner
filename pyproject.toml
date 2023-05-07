@@ -17,19 +17,33 @@ requires-python = ">=3.7"
 readme = "README.md"
 license = { text = "MIT" }
 
+[project.optional-dependencies]
+lint = [
+    "ruff>=0.0.265",
+    "black>=23.3.0",
+]
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
 
 [tool.ruff]
-line-length = 99
+line-length = 88
 extend-ignore = [
     "E741", # Do not use variables named 'I', 'O', or 'l'
 ]
+select = [
+  "E",   # pycodestyle
+  "F",   # pyflakes
+  "UP",  # pyupgrade
+  "I001", # isort
+]
 
-[tool.isort]
-line_length = 99
-only_sections = true
+[tool.black]
+line-length = 88
+target-version = ['py37']
 
 [tool.setuptools_scm]
 write_to = "asv/_version.py"
+
+[tool.pdm.scripts]
+lint = {composite = ["ruff --fix asvcore/", "black asvcore/"]}
