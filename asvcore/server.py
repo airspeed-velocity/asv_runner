@@ -1,13 +1,16 @@
-from .aux import update_sys_path, posix_redirect_output, wall_timer
+import json
+import os
+import struct
+import sys
+import tempfile
+import time
+import timeit
+
+from .aux import posix_redirect_output, update_sys_path
 from .discovery import disc_benchmarks
 from .run import _run
 
-import os
-import sys
-import tempfile
-import struct
-import json
-import time
+wall_timer = timeit.default_timer
 
 
 def recvall(sock, size):
@@ -19,17 +22,20 @@ def recvall(sock, size):
         s = sock.recv(size - len(data))
         data += s
         if not s:
-            raise RuntimeError("did not receive data from socket "
-                               f"(size {size}, got only {data !r})")
+            raise RuntimeError(
+                "did not receive data from socket " f"(size {size}, got only {data !r})"
+            )
     return data
 
 
 def _run_server(args):
-    import io
     import signal
     import socket
 
-    benchmark_dir, socket_name, = args
+    (
+        benchmark_dir,
+        socket_name,
+    ) = args
 
     update_sys_path(benchmark_dir)
 
@@ -52,44 +58,52 @@ def _run_server(args):
             os.close(fd)
 
             # Read command
-            read_size, = struct.unpack('<Q', recvall(conn, 8))
+            (read_size,) = struct.unpack("<Q", recvall(conn, 8))
             command_text = recvall(conn, read_size)
-            command_text = command_text.decode('utf-8')
+            command_text = command_text.decode("utf-8")
 
             # Parse command
             command = json.loads(command_text)
-            action = command.pop('action')
+            action = command.pop("action")
 
-            if action == 'quit':
+            if action == "quit":
                 break
-            elif action == 'preimport':
+            elif action == "preimport":
                 # Import benchmark suite before forking.
                 # Capture I/O to a file during import.
                 with posix_redirect_output(stdout_file, permanent=False):
-                    for benchmark in disc_benchmarks(benchmark_dir, ignore_import_errors=True):
+                    for benchmark in disc_benchmarks(
+                        benchmark_dir, ignore_import_errors=True
+                    ):
                         pass
 
                 # Report result
-                with io.open(stdout_file, 'r', errors='replace') as f:
+                with open(stdout_file, errors="replace") as f:
                     out = f.read()
                 out = json.dumps(out)
-                out = out.encode('utf-8')
-                conn.sendall(struct.pack('<Q', len(out)))
+                out = out.encode("utf-8")
+                conn.sendall(struct.pack("<Q", len(out)))
                 conn.sendall(out)
                 continue
 
-            benchmark_id = command.pop('benchmark_id')
-            params_str = command.pop('params_str')
-            profile_path = command.pop('profile_path')
-            result_file = command.pop('result_file')
-            timeout = command.pop('timeout')
-            cwd = command.pop('cwd')
+            benchmark_id = command.pop("benchmark_id")
+            params_str = command.pop("params_str")
+            profile_path = command.pop("profile_path")
+            result_file = command.pop("result_file")
+            timeout = command.pop("timeout")
+            cwd = command.pop("cwd")
 
             if command:
-                raise RuntimeError(f'Command contained unknown data: {command_text !r}')
+                raise RuntimeError(f"Command contained unknown data: {command_text !r}")
 
             # Spawn benchmark
-            run_args = (benchmark_dir, benchmark_id, params_str, profile_path, result_file)
+            run_args = (
+                benchmark_dir,
+                benchmark_id,
+                params_str,
+                profile_path,
+                result_file,
+            )
             pid = os.fork()
             if pid == 0:
                 conn.close()
@@ -103,6 +117,7 @@ def _run_server(args):
                             exitcode = 0
                         except BaseException:
                             import traceback
+
                             traceback.print_exc()
                 finally:
                     os._exit(exitcode)
@@ -124,11 +139,11 @@ def _run_server(args):
                     else:
                         os.kill(pid, signal.SIGTERM)
                     is_timeout = True
-                time2sleep *= 1e+1
+                time2sleep *= 1e1
                 time.sleep(min(time2sleep, 0.001))
 
             # Report result
-            with io.open(stdout_file, 'r', errors='replace') as f:
+            with open(stdout_file, errors="replace") as f:
                 out = f.read()
 
             # Emulate subprocess
@@ -142,13 +157,12 @@ def _run_server(args):
                 # shouldn't happen, but fail silently
                 retcode = -128
 
-            info = {'out': out,
-                    'errcode': -256 if is_timeout else retcode}
+            info = {"out": out, "errcode": -256 if is_timeout else retcode}
 
             result_text = json.dumps(info)
-            result_text = result_text.encode('utf-8')
+            result_text = result_text.encode("utf-8")
 
-            conn.sendall(struct.pack('<Q', len(result_text)))
+            conn.sendall(struct.pack("<Q", len(result_text)))
             conn.sendall(result_text)
         except KeyboardInterrupt:
             break

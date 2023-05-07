@@ -1,13 +1,13 @@
-from .aux import update_sys_path
-
-import os
 import importlib
-import pkgutil
 import inspect
 import json
+import os
+import pkgutil
 import traceback
 
+from .aux import update_sys_path
 from .benchmarks import benchmark_types
+
 
 def _get_benchmark(attr_name, module, klass, func):
     try:
@@ -16,7 +16,7 @@ def _get_benchmark(attr_name, module, klass, func):
         name = None
         search = attr_name
     else:
-        search = name.split('.')[-1]
+        search = name.split(".")[-1]
 
     for cls in benchmark_types:
         if cls.name_regex.match(search):
@@ -24,7 +24,7 @@ def _get_benchmark(attr_name, module, klass, func):
     else:
         return
     # relative to benchmark_dir
-    mname_parts = module.__name__.split('.', 1)[1:]
+    mname_parts = module.__name__.split(".", 1)[1:]
     if klass is None:
         if name is None:
             name = ".".join(mname_parts + [func.__name__])
@@ -58,8 +58,8 @@ def disc_modules(module_name, ignore_import_errors=False):
             return
     yield module
 
-    if getattr(module, '__path__', None):
-        for _, name, _ in pkgutil.iter_modules(module.__path__, module_name + '.'):
+    if getattr(module, "__path__", None):
+        for _, name, _ in pkgutil.iter_modules(module.__path__, module_name + "."):
             for item in disc_modules(name, ignore_import_errors):
                 yield item
 
@@ -80,16 +80,14 @@ def disc_benchmarks(root, ignore_import_errors=False):
 
     for module in disc_modules(root_name, ignore_import_errors=ignore_import_errors):
         for attr_name, module_attr in (
-            (k, v) for k, v in module.__dict__.items()
-            if not k.startswith('_')
+            (k, v) for k, v in module.__dict__.items() if not k.startswith("_")
         ):
-            if (inspect.isclass(module_attr) and
-                    not inspect.isabstract(module_attr)):
+            if inspect.isclass(module_attr) and not inspect.isabstract(module_attr):
                 for name, class_attr in inspect.getmembers(module_attr):
-                    if (inspect.isfunction(class_attr) or
-                            inspect.ismethod(
-                                class_attr)):
-                        benchmark = _get_benchmark(name, module, module_attr, class_attr)
+                    if inspect.isfunction(class_attr) or inspect.ismethod(class_attr):
+                        benchmark = _get_benchmark(
+                            name, module, module_attr, class_attr
+                        )
                         if benchmark is not None:
                             yield benchmark
             elif inspect.isfunction(module_attr):
@@ -111,9 +109,9 @@ def get_benchmark_from_name(root, name, extra_params=None):
         Fully-qualified name to a specific benchmark.
     """
 
-    if '-' in name:
+    if "-" in name:
         try:
-            name, param_idx = name.split('-', 1)
+            name, param_idx = name.split("-", 1)
             param_idx = int(param_idx)
         except ValueError:
             raise ValueError(f"Benchmark id {name!r} is invalid")
@@ -125,12 +123,12 @@ def get_benchmark_from_name(root, name, extra_params=None):
 
     # try to directly import benchmark function by guessing its import module
     # name
-    parts = name.split('.')
+    parts = name.split(".")
     for i in [1, 2]:
-        path = os.path.join(root, *parts[:-i]) + '.py'
+        path = os.path.join(root, *parts[:-i]) + ".py"
         if not os.path.isfile(path):
             continue
-        modname = '.'.join([os.path.basename(root)] + parts[:-i])
+        modname = ".".join([os.path.basename(root)] + parts[:-i])
         module = importlib.import_module(modname)
         try:
             module_attr = getattr(module, parts[-i])
@@ -144,10 +142,8 @@ def get_benchmark_from_name(root, name, extra_params=None):
                 class_attr = getattr(module_attr, parts[-1])
             except AttributeError:
                 break
-            if (inspect.isfunction(class_attr) or
-                    inspect.ismethod(class_attr)):
-                benchmark = _get_benchmark(parts[-1], module, module_attr,
-                                           class_attr)
+            if inspect.isfunction(class_attr) or inspect.ismethod(class_attr):
+                benchmark = _get_benchmark(parts[-1], module, module_attr, class_attr)
                 break
 
     if benchmark is None:
@@ -155,15 +151,16 @@ def get_benchmark_from_name(root, name, extra_params=None):
             if benchmark.name == name:
                 break
         else:
-            raise ValueError(
-                f"Could not find benchmark '{name}'")
+            raise ValueError(f"Could not find benchmark '{name}'")
 
     if param_idx is not None:
         benchmark.set_param_idx(param_idx)
 
     if extra_params:
+
         class ExtraBenchmarkAttrs:
             pass
+
         for key, value in extra_params.items():
             setattr(ExtraBenchmarkAttrs, key, value)
         benchmark._attr_sources.insert(0, ExtraBenchmarkAttrs)
@@ -179,21 +176,23 @@ def list_benchmarks(root, fp):
 
     # Streaming of JSON back out to the master process
 
-    fp.write('[')
+    fp.write("[")
     first = True
     for benchmark in disc_benchmarks(root):
         if not first:
-            fp.write(', ')
+            fp.write(", ")
         clean = dict(
-            (k, v) for (k, v) in benchmark.__dict__.items()
-            if isinstance(v, (str, int, float, list, dict, bool)) and not
-            k.startswith('_'))
+            (k, v)
+            for (k, v) in benchmark.__dict__.items()
+            if isinstance(v, (str, int, float, list, dict, bool))
+            and not k.startswith("_")
+        )
         json.dump(clean, fp, skipkeys=True)
         first = False
-    fp.write(']')
+    fp.write("]")
 
 
-def main_discover(args):
+def _discover(args):
     benchmark_dir, result_file = args
-    with open(result_file, 'w') as fp:
+    with open(result_file, "w") as fp:
         list_benchmarks(benchmark_dir, fp)

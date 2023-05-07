@@ -1,12 +1,11 @@
-import sys
-import os
-import tempfile
-import timeit
-import importlib
 import contextlib
+import importlib
+import os
+import sys
+import tempfile
+
 from .benchmarks._maxrss import set_cpu_affinity
 
-wall_timer = timeit.default_timer
 
 class SpecificImporter:
     """
@@ -34,8 +33,9 @@ class SpecificImporter:
 
 
 def update_sys_path(root):
-    sys.meta_path.insert(0, SpecificImporter(os.path.basename(root),
-                                             os.path.dirname(root)))
+    sys.meta_path.insert(
+        0, SpecificImporter(os.path.basename(root), os.path.dirname(root))
+    )
 
 
 @contextlib.contextmanager
@@ -85,13 +85,15 @@ def recvall(sock, size):
         s = sock.recv(size - len(data))
         data += s
         if not s:
-            raise RuntimeError("did not receive data from socket "
-                               "(size {}, got only {!r})".format(size, data))
+            raise RuntimeError(
+                "did not receive data from socket "
+                "(size {}, got only {!r})".format(size, data)
+            )
     return data
 
 
 def set_cpu_affinity_from_params(extra_params):
-    affinity_list = extra_params.get('cpu_affinity', None)
+    affinity_list = extra_params.get("cpu_affinity", None)
     if affinity_list is not None:
         try:
             set_cpu_affinity(affinity_list)

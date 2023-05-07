@@ -1,13 +1,14 @@
+import re
+
 from ._base import Benchmark, _get_first_attr
 
-import re
 
 class TrackBenchmark(Benchmark):
     """
     Represents a single benchmark for tracking an arbitrary value.
     """
-    name_regex = re.compile(
-        '^(Track[A-Z_].+)|(track_.+)$')
+
+    name_regex = re.compile("^(Track[A-Z_].+)|(track_.+)$")
 
     def __init__(self, name, func, attr_sources):
         Benchmark.__init__(self, name, func, attr_sources)
@@ -17,4 +18,5 @@ class TrackBenchmark(Benchmark):
     def run(self, *param):
         return self.func(*param)
 
-export_as_benchmark = [ TrackBenchmark ]
+
+export_as_benchmark = [TrackBenchmark]
