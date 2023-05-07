@@ -320,8 +320,8 @@ class Benchmark:
         return self.run(*self._current_params)
 
     def do_profile(self, filename=None):
-        def method_caller(self):
-            self.run(*self._params)
+        def method_caller():
+            run(*params)  # noqa:F821 undefined name
 
         if profile is None:
             raise RuntimeError("cProfile could not be imported")
