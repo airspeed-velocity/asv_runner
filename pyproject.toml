@@ -9,9 +9,7 @@ authors = [
 maintainers = [
     { name = "Rohit Goswami", email = "rog32@hi.is" },
 ]
-dynamic = [
-    "version",
-]
+version = "0.0.1"
 dependencies = [] # Make sure there's nothing here
 requires-python = ">=3.7"
 readme = "README.md"
