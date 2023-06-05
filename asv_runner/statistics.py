@@ -1,6 +1,15 @@
 import math
 
 
+def get_err(result, stats):
+    """
+    Return an 'error measure' suitable for informing the user
+    about the spread of the measurement results.
+    """
+    a, b = stats["q_25"], stats["q_75"]
+    return (b - a) / 2
+
+
 def binom_pmf(n, k, p):
     """Binomial pmf = (n choose k) p**k (1 - p)**(n - k)"""
     if not (0 <= k <= n):
