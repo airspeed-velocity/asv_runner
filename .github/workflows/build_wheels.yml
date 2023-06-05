@@ -7,7 +7,6 @@ jobs:
   build_wheels:
     name: Build wheel for ${{ matrix.python }}
     runs-on: ubuntu-latest
-    environment: pypi
     strategy:
       fail-fast: false
 
@@ -40,8 +39,11 @@ jobs:
   upload_pypi:
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/asv_runner
     permissions:
-      id-token: write
+      id-token: write  # for trusted publishing
     # upload to PyPI on every tag starting with 'v'
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     # alternatively, to publish when a GitHub Release is created, use the following rule:
@@ -53,8 +55,4 @@ jobs:
           # if `name: artifact` is omitted, the action will create extra parent dir
           name: artifact
           path: dist
-
       - uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_API_TOKEN }}
