@@ -9,9 +9,9 @@ from .benchmarks.time import TimeBenchmark
 def _timing(argv):
     import argparse
 
-    import asv.console
-    import asv.statistics
-    import asv.util
+    import asv_runner.console
+    import asv_runner.statistics
+    import asv_runner.util
 
     parser = argparse.ArgumentParser(
         usage="python -masv.benchmark timing [options] STATEMENT"
@@ -46,16 +46,20 @@ def _timing(argv):
     bench.redo_setup = args.setup
     result = bench.run()
 
-    value, stats = asv.statistics.compute_stats(result["samples"], result["number"])
-    formatted = asv.util.human_time(value, asv.statistics.get_err(value, stats))
+    value, stats = asv_runner.statistics.compute_stats(
+        result["samples"], result["number"]
+    )
+    formatted = asv_runner.util.human_time(
+        value, asv_runner.statistics.get_err(value, stats)
+    )
 
     if not args.json:
-        asv.console.color_print(formatted, "red")
-        asv.console.color_print("", "default")
-        asv.console.color_print(
+        asv_runner.console.color_print(formatted, "red")
+        asv_runner.console.color_print("", "default")
+        asv_runner.console.color_print(
             "\n".join(f"{k}: {v}" for k, v in sorted(stats.items())), "default"
         )
-        asv.console.color_print(f"samples: {result['samples']}", "default")
+        asv_runner.console.color_print(f"samples: {result['samples']}", "default")
     else:
         json.dump(
             {"result": value, "samples": result["samples"], "stats": stats}, sys.stdout
