@@ -9,7 +9,7 @@ authors = [
 maintainers = [
     { name = "Rohit Goswami", email = "rog32@hi.is" },
 ]
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [] # Make sure there's nothing here
 requires-python = ">=3.7"
 readme = "README.md"
