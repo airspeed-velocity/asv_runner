@@ -1,7 +1,7 @@
 [tool.pdm]
 
 [project]
-name = "asvcore"
+name = "asv_runner"
 description = "Core Python benchmark code for ASV"
 authors = [
     { name = "Rohit Goswami", email = "rog32@hi.is" },
@@ -41,7 +41,7 @@ line-length = 88
 target-version = ['py37']
 
 [tool.setuptools_scm]
-write_to = "asv/_version.py"
+write_to = "asv_runner/_version.py"
 
 [tool.pdm.scripts]
-lint = {composite = ["ruff --fix asvcore/", "black asvcore/"]}
+lint = {composite = ["ruff --fix asv_runner/", "black asv_runner/"]}
