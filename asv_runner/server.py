@@ -6,7 +6,7 @@ import tempfile
 import time
 import timeit
 
-from .aux import posix_redirect_output, update_sys_path
+from ._aux import posix_redirect_output, update_sys_path
 from .discovery import disc_benchmarks
 from .run import _run
 

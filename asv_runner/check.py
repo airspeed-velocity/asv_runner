@@ -1,6 +1,6 @@
 import sys
 
-from .aux import update_sys_path
+from ._aux import update_sys_path
 from .discovery import disc_benchmarks
 
 

@@ -5,7 +5,7 @@ import os
 import pkgutil
 import traceback
 
-from .aux import update_sys_path
+from ._aux import update_sys_path
 from .benchmarks import benchmark_types
 
 

@@ -2,7 +2,7 @@ import json
 import math
 import pickle
 
-from .aux import set_cpu_affinity_from_params
+from ._aux import set_cpu_affinity_from_params
 from .discovery import get_benchmark_from_name
 
 
