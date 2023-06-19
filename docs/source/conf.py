@@ -9,7 +9,7 @@
 project = 'asv_runner'
 copyright = '2023, asv Developers'
 author = 'asv Developers'
-release = '0.0.4'
+release = '0.0.5'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
