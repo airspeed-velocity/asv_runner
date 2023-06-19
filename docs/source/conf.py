@@ -46,3 +46,9 @@ exclude_patterns = []
 
 html_theme = 'furo'
 html_static_path = ['_static']
+
+html_theme_options = {
+    "source_repository": "https://github.com/HaoZeke/asv_runner/",
+    "source_branch": "main",
+    "source_directory": "docs/",
+}
