@@ -20,6 +20,7 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.intersphinx',
     'sphinx.ext.todo',
+    'sphinx.ext.githubpages',
     'sphinx_contributors',
     'sphinx_copybutton',
     'sphinx_design',
