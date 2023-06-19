@@ -32,6 +32,10 @@ autodoc2_packages = [
     "../../asv_runner",
 ]
 
+myst_enable_extensions = [
+    "deflist",
+]
+
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None),
     'asv': ('https://asv.readthedocs.io/en/latest/', None),
