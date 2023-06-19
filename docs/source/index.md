@@ -12,8 +12,3 @@ apidocs/index
 - [](genindex)
 - [](modindex)
 - [](search)
-<!-- - {ref}`genindex` -->
-<!-- - {ref}`modindex` -->
-<!-- - {ref}`search` -->
-
-
