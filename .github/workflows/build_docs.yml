@@ -1,7 +1,5 @@
 name: Build documentation
 on: [push, pull_request]
-permissions:
-  contents: write
 jobs:
   build_docs:
     name: Build documentation
@@ -18,14 +16,36 @@ jobs:
         run: pdm install -dG docs
       - name: Generate documentation
         run: pdm run sphinx-build -b html docs/source/ docs/build/html
+      - name: Archive artifact
+        shell: sh
+        if: runner.os == 'Linux'
+        run: |
+          tar \
+          --dereference --hard-dereference \
+          --exclude=.git \
+          --exclude=.github \
+          -cvf "$RUNNER_TEMP/artifact.tar" \
+          --directory=docs/build/html .
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: html-docs
-          path: docs/build/html/
-      - name: Deploy documentation
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          enable_jekyll: false # No jekyll processing needed
-          publish_dir: ./docs/build/html
+          name: github-pages
+          path: ${{ runner.temp }}/artifact.tar
+          if-no-files-found: error
+  # Deploy job
+  deploy:
+    # Add a dependency to the build job
+    needs: build_docs
+    permissions:
+      pages: write      # to deploy to Pages
+      id-token: write   # to verify the deployment originates from an appropriate source
+    # Deploy to the github-pages environment
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    # Specify runner + deployment step
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2 # or the latest "vX.X.X" version tag for this action
