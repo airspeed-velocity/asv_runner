@@ -18,6 +18,11 @@ jobs:
         run: pdm install -dG docs
       - name: Generate documentation
         run: pdm run sphinx-build -b html docs/source/ docs/build/html
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: html-docs
+          path: docs/build/html/
       - name: Deploy documentation
         uses: peaceiris/actions-gh-pages@v3
         with:
