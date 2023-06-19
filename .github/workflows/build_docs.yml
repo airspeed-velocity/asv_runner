@@ -1,0 +1,25 @@
+name: Build documentation
+on: [push, pull_request]
+jobs:
+  build_docs:
+    name: Build documentation
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pdm-project/setup-pdm@v3
+        with:
+          python-version: 3.9
+          cache: true
+      - name: Install dependencies
+        run: pdm install -dG docs
+      - name: Generate documentation
+        run: pdm run sphinx-build -b html docs/source/ docs/build/html
+      - name: Deploy documentation
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          enable_jekyll: false # No jekyll processing needed
+          publish_dir: ./docs/build/html
+          keep_files: true
