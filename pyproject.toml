@@ -9,6 +9,12 @@ authors = [
 maintainers = [
     { name = "Rohit Goswami", email = "rog32@hi.is" },
 ]
+classifiers = [
+  'Development Status :: 3 - Alpha',
+  'Programming Language :: Python',
+  'License :: OSI Approved :: MIT License',
+  'Topic :: System :: Benchmark',
+]
 version = "0.0.4"
 dependencies = [] # Make sure there's nothing here
 requires-python = ">=3.7"
