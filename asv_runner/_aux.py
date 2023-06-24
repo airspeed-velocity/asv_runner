@@ -38,12 +38,14 @@ class SpecificImporter:
         - `target` (object): The target object to import.
 
         ##### Returns
-        - `spec` (`ModuleSpec` or None): The module specification if the module is found, or None otherwise.
+        - `spec` (`ModuleSpec` or None): The module specification if the module
+          is found, or None otherwise.
 
         ##### Notes
-        This method is called by the import system to find the module specification for the requested module.
-        If the requested module matches the name of the SpecificImporter instance, it returns the module specification
-        using the `importlib.machinery.PathFinder`.
+        This method is called by the import system to find the module
+        specification for the requested module.  If the requested module matches
+        the name of the SpecificImporter instance, it returns the module
+        specification using the `importlib.machinery.PathFinder`.
         """
         if fullname == self._name:
             if path is not None:
@@ -61,8 +63,9 @@ def update_sys_path(root):
      `root` (`str`): The path to the root directory.
 
     ##### Notes
-    This function inserts the SpecificImporter into the `sys.meta_path` at the beginning, allowing the module
-    to be imported using the SpecificImporter when it is encountered during the import process.
+    This function inserts the SpecificImporter into the `sys.meta_path` at the
+    beginning, allowing the module to be imported using the SpecificImporter
+    when it is encountered during the import process.
     """
     sys.meta_path.insert(
         0, SpecificImporter(os.path.basename(root), os.path.dirname(root))
@@ -76,23 +79,26 @@ def posix_redirect_output(filename=None, permanent=True):
 
     ##### Parameters
     filename : str or None, optional
-        The name of the file to redirect the output to. If None, a temporary file will be created.
+        The name of the file to redirect the output to. If None, a temporary
+        file will be created.
     permanent : bool, optional
-        Indicates whether the redirection is permanent or temporary. If False, the original stdout/stderr
-        will be restored after the context is exited.
+        Indicates whether the redirection is permanent or temporary. If False,
+        the original stdout/stderr will be restored after the context is exited.
 
     ##### Yields
     filename : str
         The name of the file where the output is redirected.
 
     ##### Notes
-    This function redirects the `stdout` and `stderr` streams to a file using the posix `dup2` function. It is
-    typically used within a `with` statement to encapsulate the code block where the redirection is desired.
+    This function redirects the `stdout` and `stderr` streams to a file using
+    the posix `dup2` function. It is typically used within a `with` statement to
+    encapsulate the code block where the redirection is desired.
 
-    If `filename` is not provided, a temporary file will be created and used for redirection.
+    If `filename` is not provided, a temporary file will be created and used for
+    redirection.
 
-    If `permanent` is `True`, the redirection will persist after the context is exited. If `False`, the original
-    `stdout`/`stderr` will be restored.
+    If `permanent` is `True`, the redirection will persist after the context is
+    exited. If `False`, the original `stdout`/`stderr` will be restored.
     """
     sys.stdout.flush()
     sys.stderr.flush()
@@ -150,8 +156,8 @@ def recvall(sock, size):
     the specified size is reached. It ensures that all the required data is received
     before returning.
 
-    If the received data size is less than the specified size, a `RuntimeError` is raised
-    indicating the failure to receive the complete data.
+    If the received data size is less than the specified size, a `RuntimeError`
+    is raised indicating the failure to receive the complete data.
     """
     data = b""
     while len(data) < size:

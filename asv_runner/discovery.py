@@ -153,25 +153,28 @@ def get_benchmark_from_name(root, name, extra_params=None):
     ##### Parameters
     - `root` (`str`): Path to the root of a benchmark suite.
     - `name` (`str`): Fully-qualified name to a specific benchmark.
-    - `extra_params` (dict, optional): Extra parameters to be added to the benchmark.
+    - `extra_params` (dict, optional): Extra parameters to be added to the
+      benchmark.
 
     ##### Returns
     - `benchmark` (Benchmark instance): A benchmark instance created from the given
     fully-qualified benchmark name.
 
     ##### Raises
-    - `ValueError`: If the given benchmark id is invalid or if the benchmark could not be found.
+    - `ValueError`: If the given benchmark id is invalid or if the benchmark
+      could not be found.
 
     ##### Notes
-    This function tries to create a benchmark from the given fully-qualified name. It splits
-    the name using the "-" character. If "-" is present in the name, the string after the "-"
-    is converted to integer and is considered as the parameter index. If "-" is not present,
-    the parameter index is set to None.
-    The function then tries to directly import the benchmark function by guessing its import
-    module name. If the benchmark is not found this way, the function looks for the benchmark
-    in the directory tree root using `disc_benchmarks`. If the benchmark is still not found,
-    it raises a ValueError.
-    If extra parameters are provided, they are added to the benchmark.
+    This function tries to create a benchmark from the given fully-qualified
+    name. It splits the name using the "-" character. If "-" is present in the
+    name, the string after the "-" is converted to integer and is considered as
+    the parameter index. If "-" is not present, the parameter index is set to
+    None.  The function then tries to directly import the benchmark function by
+    guessing its import module name. If the benchmark is not found this way, the
+    function looks for the benchmark in the directory tree root using
+    `disc_benchmarks`. If the benchmark is still not found, it raises a
+    ValueError.  If extra parameters are provided, they are added to the
+    benchmark.
     """
     if "-" in name:
         try:
@@ -220,6 +223,7 @@ def get_benchmark_from_name(root, name, extra_params=None):
         benchmark.set_param_idx(param_idx)
 
     if extra_params:
+
         class ExtraBenchmarkAttrs:
             pass
 
@@ -236,14 +240,16 @@ def list_benchmarks(root, fp):
 
     ##### Parameters
     - `root` (`str`): Path to the root of a benchmark suite.
-    - `fp` (file object): File pointer where the JSON list of benchmarks should be written.
+    - `fp` (file object): File pointer where the JSON list of benchmarks should
+      be written.
 
     ##### Notes
-    This function updates the system path with the root directory of the benchmark suite. Then,
-    it iterates over all benchmarks discovered in the root directory. For each benchmark, it
-    creates a dictionary containing all attributes of the benchmark that are of types
-    `str`, `int`, `float`, `list`, `dict`, `bool` and don't start with an underscore `_`.
-    These attribute dictionaries are then dumped as JSON into the file pointed by `fp`.
+    This function updates the system path with the root directory of the
+    benchmark suite. Then, it iterates over all benchmarks discovered in the
+    root directory. For each benchmark, it creates a dictionary containing all
+    attributes of the benchmark that are of types `str`, `int`, `float`, `list`,
+    `dict`, `bool` and don't start with an underscore `_`.  These attribute
+    dictionaries are then dumped as JSON into the file pointed by `fp`.
     """
     update_sys_path(root)
 
@@ -266,16 +272,19 @@ def list_benchmarks(root, fp):
 
 def _discover(args):
     """
-    Discovers all benchmarks in the provided benchmark directory and lists them to a file.
+    Discovers all benchmarks in the provided benchmark directory and lists them
+    to a file.
 
     ##### Parameters
-    - `args` (tuple): A tuple containing benchmark directory and result file path.
+    - `args` (tuple): A tuple containing benchmark directory and result file
+      path.
 
     ##### Notes
-    This function takes a tuple as an argument. The first element of the tuple should be the path
-    to the benchmark directory, and the second element should be the path to the result file. It
-    opens the result file for writing and calls the `list_benchmarks` function with the benchmark
-    directory and the file pointer of the result file.
+    This function takes a tuple as an argument. The first element of the tuple
+    should be the path to the benchmark directory, and the second element should
+    be the path to the result file. It opens the result file for writing and
+    calls the `list_benchmarks` function with the benchmark directory and the
+    file pointer of the result file.
     """
     benchmark_dir, result_file = args
     with open(result_file, "w") as fp:
