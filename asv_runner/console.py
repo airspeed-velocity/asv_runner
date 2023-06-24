@@ -19,11 +19,20 @@ WIN = os.name == "nt"
 
 def isatty(file):
     """
-    Returns `True` if `file` is a tty.
+    Determines if a file is a tty.
 
+    #### Parameters
+    **file** (`file-like object`)
+    : The file-like object to check.
+
+    #### Returns
+    **isatty** (`bool`)
+    : Returns `True` if the file is a tty, `False` otherwise.
+
+    #### Notes
     Most built-in Python file-like objects have an `isatty` member,
-    but some user-defined types may not, so this assumes those are not
-    ttys.
+    but some user-defined types may not. In such cases, this function
+    assumes those are not ttys.
     """
     if hasattr(file, "isatty"):
         return file.isatty()
@@ -32,23 +41,25 @@ def isatty(file):
 
 def _color_text(text, color):
     """
-    Returns a string wrapped in ANSI color codes for coloring the
-    text in a terminal::
+    Returns a string wrapped in ANSI color codes for coloring the text in a terminal.
 
-        colored_text = color_text('Here is a message', 'blue')
+    #### Parameters
+    **text** (`str`)
+    : The string to colorize.
 
-    This won't actually effect the text until it is printed to the
-    terminal.
+    **color** (`str`)
+    : An ANSI terminal color name. Must be one of the following:
+      'black', 'red', 'green', 'brown', 'blue', 'magenta', 'cyan', 'lightgrey',
+      'default', 'darkgrey', 'lightred', 'lightgreen', 'yellow', 'lightblue',
+      'lightmagenta', 'lightcyan', 'white', or '' (the empty string).
 
-    Parameters
-    ----------
-    text : str
-        The string to return, bounded by the color codes.
-    color : str
-        An ANSI terminal color name. Must be one of:
-        black, red, green, brown, blue, magenta, cyan, lightgrey,
-        default, darkgrey, lightred, lightgreen, yellow, lightblue,
-        lightmagenta, lightcyan, white, or '' (the empty string).
+    #### Returns
+    **colored_text** (`str`)
+    : The input string, bounded by the appropriate ANSI color codes.
+
+    #### Notes
+    This function wraps the input text with ANSI color codes based on the given color.
+    It won't actually affect the text until it is printed to the terminal.
     """
     color_mapping = {
         "black": "0;30",
@@ -74,26 +85,50 @@ def _color_text(text, color):
     return f"\033[{color_code}m{text}\033[0m"
 
 
-# This is a table of Unicode characters that we want to have
-# reasonable representations in ascii so they aren't just replaced
-# with '?'.  A complete solution to this problem would involve a
-# third-party library such as "unidecode", but this handles the common
-# cases of stuff coming from asv.
+# A dictionary of Unicode characters that have reasonable representations in ASCII.
+# This dictionary contains Unicode characters as keys and their corresponding ASCII
+# representations as values. This allows for convenient replacement of these specific
+# Unicode characters with ASCII ones to prevent them from being replaced by '?'.
 #
-# You can find the characters that need an entry using:
-#    grep -P  -n '[^\x00-\x7F]' -r *
+# The mapping currently includes:
+# - 'μ' maps to 'u'
+# - '·' maps to '-'
+# - '±' maps to '~'
+#
+# You can find additional characters that might need an entry using:
+# `grep -P  -n '[^\x00-\x7F]' -r *`
 # in the `asv` source directory.
-
 _unicode_translations = {ord("μ"): "u", ord("·"): "-", ord("±"): "~"}
 
 
 def _write_with_fallback(s, fileobj):
     """
-    Write the supplied string to the given stream, but switch to
-    the locale's preferred encoding in case of a UnicodeEncodeError.
-    Failing that, replace characters.
-    *fileobj* must be text stream on Py3, on Py2 a `file` byte stream.
-    *s* must be unicode.
+    Writes the supplied string to the given file-like object, handling potential
+    UnicodeEncodeErrors by falling back to the locale's preferred encoding.
+
+    #### Parameters
+    `s` (`str`):
+    The Unicode string to be written to the file-like object. Raises a `ValueError`
+    if `s` is not a Unicode string.
+
+    `fileobj` (file-like object):
+    The file-like object to which the string `s` is to be written. On Python 3,
+    this must be a text stream. On Python 2, this must be a `file` byte stream.
+
+    #### Notes
+    This function first tries to write the input string `s` to the file object
+    `fileobj`. If a `UnicodeError` occurs during this process (indicating that the
+    string contains characters not representable in the file's encoding), the function
+    falls back to encoding the string in the locale's preferred encoding before writing.
+
+    If the string `s` still cannot be encoded in the locale's preferred encoding, the
+    function translates the string to replace problematic Unicode characters with
+    ASCII ones using the `_unicode_translations` dictionary, and then encodes and
+    writes the resulting string to `fileobj` using the "replace" error handling scheme
+    (which replaces any non-encodable characters with a suitable replacement marker).
+
+    After the write operation, the function flushes the file object's output buffer to
+    ensure that the written data is actually saved to the file.
     """
     if not isinstance(s, str):
         raise ValueError("Input string is not a Unicode string")
@@ -118,35 +153,39 @@ def _write_with_fallback(s, fileobj):
 
 def color_print(*args, **kwargs):
     """
-    Prints colors and styles to the terminal uses ANSI escape
-    sequences.
+    Prints colored and styled text to the terminal using ANSI escape sequences.
 
-    ::
+    #### Parameters
+    *args (`tuple` of `str`):
+    The positional arguments should come in pairs (`msg`, `color`), where `msg`
+    is the string to display and `color` is the color to display it in. `color`
+    is an ANSI terminal color name. Must be one of: black, red, green, brown,
+    blue, magenta, cyan, lightgrey, default, darkgrey, lightred, lightgreen,
+    yellow, lightblue, lightmagenta, lightcyan, white, or '' (the empty string).
 
-       color_print('This is the color ', 'default', 'GREEN', 'green')
+    `file` (writable file-like object, optional):
+    Where to write to. Defaults to `sys.stdout`. If `file` is not a tty (as determined
+    by calling its `isatty` member, if one exists), no coloring will be included. It's
+    passed as a keyword argument.
 
-    Parameters
-    ----------
-    positional args : str
-        The positional arguments come in pairs (*msg*, *color*), where
-        *msg* is the string to display and *color* is the color to
-        display it in.
+    `end` (`str`, optional):
+    The ending of the message. Defaults to "\n". The `end` will be printed after
+    resetting any color or font state. It's passed as a keyword argument.
 
-        *color* is an ANSI terminal color name.  Must be one of:
-        black, red, green, brown, blue, magenta, cyan, lightgrey,
-        default, darkgrey, lightred, lightgreen, yellow, lightblue,
-        lightmagenta, lightcyan, white, or '' (the empty string).
+    #### Notes
+    This function allows you to print text in various colors to the console, which can
+    be helpful for distinguishing different kinds of output or for drawing attention to
+    particular messages.
 
-    file : writeable file-like object, optional
-        Where to write to.  Defaults to `sys.stdout`.  If file is not
-        a tty (as determined by calling its `isatty` member, if one
-        exists), no coloring will be included.
+    It works by applying ANSI escape sequences to the input strings according to the
+    specified colors. These escape sequences are interpreted by the terminal emulator
+    to apply the specified colors and styles.
 
-    end : str, optional
-        The ending of the message.  Defaults to ``\\n``.  The end will
-        be printed after resetting any color or font state.
+    #### Example
+    ```{code-block} python
+    color_print('This is the color ', 'default', 'GREEN', 'green')
+    ```
     """
-
     file = kwargs.get("file", sys.stdout)
     end = kwargs.get("end", "\n")
 
@@ -171,6 +210,28 @@ def color_print(*args, **kwargs):
 
 
 def get_answer_default(prompt, default, use_defaults=False):
+    """
+    Prompts the user for input and returns the entered value or a default.
+
+    #### Parameters
+    `prompt` (`str`):
+    The string that is presented to the user.
+
+    `default` (any):
+    The value returned if the user doesn't enter anything and just hits Enter. This
+    value is also shown in the prompt to indicate to the user what the default is.
+
+    `use_defaults` (`bool`, optional):
+    If True, the function will immediately return the default value without prompting
+    the user for input. Defaults to False.
+
+    #### Returns
+    The user's input, or the provided default value if the user didn't enter anything.
+
+    #### Notes
+    This function enhances the built-in `input` function by allowing a default value
+    to be specified, which is returned if the user doesn't enter anything.
+    """
     color_print(f"{prompt} [{default}]: ", end="")
 
     if use_defaults:
