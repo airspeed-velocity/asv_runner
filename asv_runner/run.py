@@ -10,33 +10,38 @@ def _run(args):
     """
     Runs a specified benchmark and writes the result to a file.
 
-    ##### Parameters
-    - `args` (tuple): A tuple containing benchmark directory, benchmark id,
+    #### Parameters
+    **args** (`tuple`)
+    : A tuple containing benchmark directory, benchmark id,
     parameters string, profile path, and result file path.
 
-    ##### Notes
-    The `args` tuple should have five elements:
-        1. `benchmark_dir` (`str`): The directory where the benchmarks are
-        located.
-        2. `benchmark_id` (`str`): The id of the benchmark to run.
-        3. `params_str` (`str`): A string containing JSON-encoded extra
-        parameters.
-        4. `profile_path` (`str`): The path for profile data. "None" implies no
-        profiling.
-        5. `result_file` (`str`): The path to the file where the result should
-        be written.
+    #### Notes
+    This function first loads the extra parameters and sets the
+    CPU affinity based on them. It then creates a benchmark
+    from the `benchmark_id`. If the benchmark has a setup
+    cache key, it loads the cache from a file and inserts it
+    into the benchmark parameters.
 
-    This function first loads the extra parameters and sets the CPU affinity
-    based on them.  It then creates a benchmark from the `benchmark_id`. If the
-    benchmark has a setup cache key, it loads the cache from a file and inserts
-    it into the benchmark parameters.
+    Then, the function runs the setup for the benchmark. If
+    the setup indicates that the benchmark should be skipped,
+    it sets the result as `math.nan`. Otherwise, it runs the
+    benchmark and profiles it if a `profile_path` is provided.
+    After running the benchmark, it performs the teardown for
+    the benchmark and writes the result to the `result_file`.
 
-    Then, the function runs the setup for the benchmark. If the setup indicates
-    that the benchmark should be skipped, it sets the result as `math.nan`.
-    Otherwise, it runs the benchmark and profiles it if a `profile_path` is
-    provided. After running the benchmark, it performs the teardown for the
-    benchmark and writes the result to the `result_file`.
+    The `args` tuple contains:
+    - **benchmark_dir** (`str`)
+    : The directory where the benchmarks are located.
+    - **benchmark_id** (`str`)
+    : The id of the benchmark to run.
+    - **params_str** (`str`)
+    : A string containing JSON-encoded extra parameters.
+    - **profile_path** (`str`)
+    : The path for profile data. "None" implies no profiling.
+    - **result_file** (`str`)
+    : The path to the file where the result should be written.
     """
+
     (benchmark_dir, benchmark_id, params_str, profile_path, result_file) = args
 
     extra_params = json.loads(params_str)

@@ -12,6 +12,7 @@ class SpecificImporter:
     Module importer that only allows loading a given module from the
     given path.
 
+    #### Notes
     Using this enables importing the asv benchmark suite without
     adding its parent directory to sys.path. The parent directory can
     in principle contain anything, including some version of the
@@ -21,9 +22,14 @@ class SpecificImporter:
 
     def __init__(self, name, root):
         """
-        ##### Parameters
-        - `name` (`str`): The name of the module to load.
-        - `root` (`str`): The path to the directory containing the module.
+        Initialize a new instance of `SpecificImporter`.
+
+        #### Parameters
+        **name** (`str`)
+        : The name of the module to load.
+
+        **root** (`str`)
+        : The path to the directory containing the module.
         """
         self._name = name
         self._root = root
@@ -32,16 +38,21 @@ class SpecificImporter:
         """
         Find the module specification for the given module.
 
-        ##### Parameters
-        - `fullname` (`str`): The fully qualified name of the module.
-        - `path` (list or None): The path for module search, or None if unavailable.
-        - `target` (object): The target object to import.
+        #### Parameters
+        **fullname** (`str`)
+        : The fully qualified name of the module.
 
-        ##### Returns
-        - `spec` (`ModuleSpec` or None): The module specification if the module
-          is found, or None otherwise.
+        **path** (list or None)
+        : The path for module search, or None if unavailable.
 
-        ##### Notes
+        **target** (object)
+        : The target object to import.
+
+        #### Returns
+        **spec** (`ModuleSpec` or None)
+        : The module specification if the module is found, or None otherwise.
+
+        #### Notes
         This method is called by the import system to find the module
         specification for the requested module.  If the requested module matches
         the name of the SpecificImporter instance, it returns the module
@@ -77,20 +88,21 @@ def posix_redirect_output(filename=None, permanent=True):
     """
     Redirect stdout/stderr to a file, using posix `dup2`.
 
-    ##### Parameters
-    filename : str or None, optional
-        The name of the file to redirect the output to. If None, a temporary
-        file will be created.
-    permanent : bool, optional
-        Indicates whether the redirection is permanent or temporary. If False,
-        the original stdout/stderr will be restored after the context is exited.
+    #### Parameters
+    **filename** (`str` or None, optional)
+    : The name of the file to redirect the output to. If None, a temporary
+      file will be created.
 
-    ##### Yields
-    filename : str
-        The name of the file where the output is redirected.
+    **permanent** (`bool`, optional)
+    : Indicates whether the redirection is permanent or temporary. If False,
+      the original stdout/stderr will be restored after the context is exited.
 
-    ##### Notes
-    This function redirects the `stdout` and `stderr` streams to a file using
+    #### Yields
+    **filename** (`str`)
+    : The name of the file where the output is redirected.
+
+    #### Notes
+    The function redirects the `stdout` and `stderr` streams to a file using
     the posix `dup2` function. It is typically used within a `with` statement to
     encapsulate the code block where the redirection is desired.
 
@@ -137,22 +149,23 @@ def recvall(sock, size):
     """
     Receive data of given size from a socket connection.
 
-    ##### Parameters
-    `sock` : socket object
-        The socket connection to receive data from.
-    `size` : int
-        The size of the data to receive, in bytes.
+    #### Parameters
+    **sock** (socket object)
+    : The socket connection to receive data from.
 
-    ##### Returns
-    `data` : bytes
-        The received data.
+    **size** (`int`)
+    : The size of the data to receive, in bytes.
 
-    ##### Raises
-    `RuntimeError`
-        If the data received from the socket is less than the specified size.
+    #### Returns
+    **data** (`bytes`)
+    : The received data.
 
-    ##### Notes
-    This function receives data from a socket connection in multiple chunks until
+    #### Raises
+    **RuntimeError**
+    : If the data received from the socket is less than the specified size.
+
+    #### Notes
+    The function receives data from a socket connection in multiple chunks until
     the specified size is reached. It ensures that all the required data is received
     before returning.
 
