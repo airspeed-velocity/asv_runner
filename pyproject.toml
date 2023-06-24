@@ -62,3 +62,4 @@ write_to = "asv_runner/_version.py"
 
 [tool.pdm.scripts]
 lint = {composite = ["ruff --fix asv_runner/", "black asv_runner/"]}
+mkdoc = {composite = ["sphinx-build -b html docs/source docs/build/html"]}
