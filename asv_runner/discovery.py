@@ -10,6 +10,34 @@ from .benchmarks import benchmark_types
 
 
 def _get_benchmark(attr_name, module, klass, func):
+    """
+    Retrieves benchmark function based on attribute name, module, class, and
+    function.
+
+    #### Parameters
+    **attr_name** (`str`)
+    : The attribute name of the function.
+
+    **module** (module)
+    : The module where the function resides.
+
+    **klass** (class or None)
+    : The class defining the function, or None if not applicable.
+
+    **func** (function)
+    : The function to be benchmarked.
+
+    #### Returns
+    **benchmark** (Benchmark instance or None)
+    : A benchmark instance with the name of the benchmark, the function to be
+    benchmarked, and its sources. Returns None if no matching benchmark is found.
+
+    #### Notes
+    The function tries to get the `benchmark_name` from `func`. If it fails,
+    it uses `attr_name` to match with the name regex in the benchmark types.
+    If a match is found, it creates a new benchmark instance and returns it.
+    If no match is found, it returns None.
+    """
     try:
         name = func.benchmark_name
     except AttributeError:
@@ -40,13 +68,26 @@ def _get_benchmark(attr_name, module, klass, func):
 
 def disc_modules(module_name, ignore_import_errors=False):
     """
-    Recursively import a module and all sub-modules in the package
+    Recursively imports a module and all sub-modules in the package.
 
-    Yields
-    ------
-    module
-        Imported module in the package tree
+    #### Parameters
+    **module_name** (`str`)
+    : The name of the module to import.
 
+    **ignore_import_errors** (`bool`, optional)
+    : Whether to ignore import errors. Default is False.
+
+    #### Yields
+    **module** (module)
+    : The imported module in the package tree.
+
+    #### Notes
+    This function imports the given module and yields it. If `ignore_import_errors`
+    is set to True, the function will continue executing even if the import fails
+    and will print the traceback. If `ignore_import_errors` is set to False and
+    the import fails, the function will raise the error. After yielding the
+    imported module, the function looks for sub-modules within the package of
+    the imported module and recursively imports and yields them.
     """
     if not ignore_import_errors:
         module = importlib.import_module(module_name)
@@ -66,16 +107,34 @@ def disc_modules(module_name, ignore_import_errors=False):
 
 def disc_benchmarks(root, ignore_import_errors=False):
     """
-    Discover all benchmarks in a given directory tree, yielding Benchmark
-    objects
+    Discovers all benchmarks in a given directory tree, yielding Benchmark
+    objects.
 
-    For each class definition, looks for any methods with a
-    special name.
+    #### Parameters
+    **root** (`str`)
+    : The root of the directory tree where the function begins to search for
+      benchmarks.
 
-    For each free function, yields all functions with a special
-    name.
+    **ignore_import_errors** (`bool`, optional)
+    : Specifies if import errors should be ignored. Default is False.
+
+    #### Yields
+    **benchmark** (Benchmark instance or None)
+    : A benchmark instance containing the benchmark's name, the function to
+      be benchmarked, and its sources if a matching benchmark is found.
+
+    #### Notes
+    For each class definition, the function searches for methods with a
+    specific name. For each free function, it yields all functions with a
+    specific name. The function initially imports all modules and submodules
+    in the directory tree using the `disc_modules` function. Then, for each
+    imported module, it searches for classes and functions that might be
+    benchmarks. If it finds a class, it looks for methods within that class
+    that could be benchmarks. If it finds a free function, it considers it as
+    a potential benchmark. A potential benchmark is confirmed by the
+    `_get_benchmark` function. If this function returns a benchmark instance,
+    the instance is yielded.
     """
-
     root_name = os.path.basename(root)
 
     for module in disc_modules(root_name, ignore_import_errors=ignore_import_errors):
@@ -98,17 +157,38 @@ def disc_benchmarks(root, ignore_import_errors=False):
 
 def get_benchmark_from_name(root, name, extra_params=None):
     """
-    Create a benchmark from a fully-qualified benchmark name.
+    Creates a benchmark from a fully-qualified benchmark name.
 
-    Parameters
-    ----------
-    root : str
-        Path to the root of a benchmark suite.
+    #### Parameters
+    **root** (`str`)
+    : Path to the root of a benchmark suite.
 
-    name : str
-        Fully-qualified name to a specific benchmark.
+    **name** (`str`)
+    : Fully-qualified name of a specific benchmark.
+
+    **extra_params** (`dict`, optional)
+    : Extra parameters to be added to the benchmark.
+
+    #### Returns
+    **benchmark** (Benchmark instance)
+    : A benchmark instance created from the given fully-qualified benchmark name.
+
+    #### Raises
+    **ValueError**
+    : If the provided benchmark ID is invalid or if the benchmark could not be found.
+
+    #### Notes
+    This function aims to create a benchmark from the given fully-qualified
+    name. It splits the name using the "-" character. If "-" is present in the
+    name, the string after the "-" is converted to an integer and is considered as
+    the parameter index. If "-" is not present, the parameter index is set to
+    None.  The function then tries to directly import the benchmark function by
+    guessing its import module name. If the benchmark is not found this way, the
+    function searches for the benchmark in the directory tree root using
+    `disc_benchmarks`. If the benchmark is still not found, it raises a
+    ValueError.  If extra parameters are provided, they are added to the
+    benchmark.
     """
-
     if "-" in name:
         try:
             name, param_idx = name.split("-", 1)
@@ -121,8 +201,7 @@ def get_benchmark_from_name(root, name, extra_params=None):
     update_sys_path(root)
     benchmark = None
 
-    # try to directly import benchmark function by guessing its import module
-    # name
+    # try to directly import benchmark function by guessing its import module name
     parts = name.split(".")
     for i in [1, 2]:
         path = os.path.join(root, *parts[:-i]) + ".py"
@@ -170,12 +249,26 @@ def get_benchmark_from_name(root, name, extra_params=None):
 
 def list_benchmarks(root, fp):
     """
-    List all of the discovered benchmarks to fp as JSON.
+    Lists all discovered benchmarks to a file pointer as JSON.
+
+    #### Parameters
+    **root** (`str`)
+    : Path to the root of a benchmark suite.
+
+    **fp** (file object)
+    : File pointer where the JSON list of benchmarks should be written.
+
+    #### Notes
+    The function updates the system path with the root directory of the
+    benchmark suite. Then, it iterates over all benchmarks discovered in the
+    root directory. For each benchmark, it creates a dictionary containing all
+    attributes of the benchmark that are of types `str`, `int`, `float`, `list`,
+    `dict`, `bool` and don't start with an underscore `_`.  These attribute
+    dictionaries are then dumped as JSON into the file pointed by `fp`.
     """
     update_sys_path(root)
 
     # Streaming of JSON back out to the master process
-
     fp.write("[")
     first = True
     for benchmark in disc_benchmarks(root):
@@ -193,6 +286,21 @@ def list_benchmarks(root, fp):
 
 
 def _discover(args):
+    """
+    Discovers all benchmarks in the provided benchmark directory and lists them
+    to a file.
+
+    #### Parameters
+    **args** (`tuple`)
+    : A tuple containing benchmark directory and result file path.
+
+    #### Notes
+    The function takes a tuple as an argument. The first element of the tuple
+    should be the path to the benchmark directory, and the second element should
+    be the path to the result file. It opens the result file for writing and
+    calls the `list_benchmarks` function with the benchmark directory and the
+    file pointer of the result file.
+    """
     benchmark_dir, result_file = args
     with open(result_file, "w") as fp:
         list_benchmarks(benchmark_dir, fp)

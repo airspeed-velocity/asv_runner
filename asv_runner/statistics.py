@@ -3,15 +3,48 @@ import math
 
 def get_err(result, stats):
     """
-    Return an 'error measure' suitable for informing the user
-    about the spread of the measurement results.
+    Computes an 'error measure' based on the interquartile range of the
+    measurement results.
+
+    #### Parameters
+    **result** (`any`)
+    : The measurement results. Currently unused.
+
+    **stats** (`dict`)
+    : A dictionary of statistics computed from the measurement results.
+      It should contain the keys "q_25" and "q_75" representing the 25th and
+      75th percentiles respectively.
+
+    #### Returns
+    **error** (`float`)
+    : The error measure, defined as half the interquartile range
+    (i.e., (Q3 - Q1) / 2).
     """
     a, b = stats["q_25"], stats["q_75"]
     return (b - a) / 2
 
 
 def binom_pmf(n, k, p):
-    """Binomial pmf = (n choose k) p**k (1 - p)**(n - k)"""
+    """
+    Computes the Probability Mass Function (PMF) for a binomial distribution.
+
+    #### Parameters
+    **n** (`int`)
+    : The number of trials in the binomial distribution.
+
+    **k** (`int`)
+    : The number of successful trials.
+
+    **p** (`float`)
+    : The probability of success on each trial.
+
+    #### Returns
+    **pmf** (`float`)
+    : The binomial PMF computed as (n choose k) * p**k * (1 - p)**(n - k).
+
+    #### Notes
+    Handles edge cases where p equals 0 or 1.
+    """
     if not (0 <= k <= n):
         return 0
     if p == 0:
@@ -29,15 +62,27 @@ def binom_pmf(n, k, p):
 
 def quantile(x, q):
     """
-    Compute quantile/percentile of the data
+    Computes a quantile/percentile from a dataset.
 
-    Parameters
-    ----------
-    x : list of float
-        Data set
-    q : float
-        Quantile to compute, 0 <= q <= 1
+    #### Parameters
+    **x** (`list` of `float`)
+    : The dataset for which the quantile is to be computed.
 
+    **q** (`float`)
+    : The quantile to compute. Must be in the range [0, 1].
+
+    #### Returns
+    **m** (`float`)
+    : The computed quantile from the dataset.
+
+    #### Raises
+    **ValueError**
+    : If the provided quantile q is not in the range [0, 1].
+
+    #### Notes
+    This function sorts the input data and calculates the quantile
+    using a linear interpolation method if the desired quantile lies
+    between two data points.
     """
     if not 0 <= q <= 1:
         raise ValueError("Invalid quantile")
@@ -59,27 +104,33 @@ def quantile(x, q):
 
 def quantile_ci(x, q, alpha_min=0.01):
     """
-    Compute a quantile and a confidence interval.
+    Compute a quantile and a confidence interval for a given dataset.
 
-    Assumes independence, but otherwise nonparametric.
+    #### Parameters
+    **x** (`list` of `float`)
+    : The dataset from which the quantile and confidence interval are computed.
 
-    Parameters
-    ----------
-    x : list of float
-        Samples
-    q : float
-        Quantile to compute, in [0,1].
-    alpha_min : float, optional
-        Limit for coverage.
-        The result has coverage >= 1 - alpha_min.
+    **q** (`float`)
+    : The quantile to compute. Must be in the range [0, 1].
 
-    Returns
-    -------
-    m : float
-        Quantile of x
-    ci : tuple of floats
-        Confidence interval (a, b), of coverage >= alpha_min.
+    **alpha_min** (`float`, optional)
+    : Limit for coverage. The result has coverage >= 1 - alpha_min. Defaults to 0.01.
 
+    #### Returns
+    **m** (`float`)
+    : The computed quantile from the dataset.
+
+    **ci** (`tuple` of `float`)
+    : Confidence interval (a, b), of coverage >= alpha_min.
+
+    #### Notes
+    This function assumes independence but is otherwise nonparametric. It sorts
+    the input data and calculates the quantile using a linear interpolation
+    method if the desired quantile lies between two data points. The confidence
+    interval is computed using a known property of the cumulative distribution
+    function (CDF) of a binomial distribution. This method calculates the
+    smallest range (y[r-1], y[s-1]) for which the coverage is at least
+    alpha_min.
     """
 
     y = sorted(x)
@@ -126,46 +177,56 @@ def quantile_ci(x, q, alpha_min=0.01):
 
 class LaplacePosterior:
     """
-    Univariate distribution::
+    Class to represent univariate Laplace posterior distribution.
 
-        p(beta|y) = N [sum(|y_j - beta|)]**(-nu-1)
+    #### Description
+    This class represents the univariate posterior distribution defined as
+    `p(beta|y) = N [sum(|y_j - beta|)]**(-nu-1)` where N is the normalization factor.
 
-    where N is the normalization factor.
+    #### Parameters
+    **y** (`list` of `float`)
+    : A list of sample values from the distribution.
 
-    Parameters
-    ----------
-    y : list of float
-        Samples
-    nu : float, optional
-        Degrees of freedom. Default: len(y)-1
+    **nu** (`float`, optional)
+    : Degrees of freedom. Default is `len(y) - 1`.
 
-    Notes
-    -----
-    This is the posterior distribution in the Bayesian model assuming
-    Laplace distributed noise::
+    #### Attributes
+    **mle** (`float`)
+    : The maximum likelihood estimate for beta which is the median of y.
 
-        p(y|beta,sigma) = N exp(- sum_j (1/sigma) |y_j - beta|)
-
-        p(sigma) ~ 1/sigma
-
-        nu = len(y) - 1
-
-    The MLE for beta is median(y).
-
-    Note that the same approach applied to a Gaussian model::
-
-        p(y|beta,sigma) = N exp(- sum_j 1/(2 sigma^2) (y_j - beta)^2)
-
-    results to::
-
-        p(beta|y) = N T(t, m-1);   t = (beta - mean(y)) / (sstd(y) / sqrt(m))
-
-    where ``T(t, nu)`` is the Student t-distribution pdf, which then gives
-    the standard textbook formulas for the mean.
-
+    #### Notes
+    This is the posterior distribution in the Bayesian model assuming Laplace
+    distributed noise, where `p(y|beta,sigma) = N exp(- sum_j (1/sigma) |y_j -
+    beta|)`, `p(sigma) ~ 1/sigma`, and `nu = len(y) - 1`. The MLE for beta is
+    `median(y)`. Applying the same approach to a Gaussian model results to
+    `p(beta|y) = N T(t, m-1)`, `t = (beta - mean(y)) / (sstd(y) / sqrt(m))`
+    where `T(t, nu)` is the Student t-distribution pdf, which gives the standard
+    textbook formulas for the mean.
     """
 
     def __init__(self, y, nu=None):
+        """
+        Initializes an instance of the LaplacePosterior class.
+
+        #### Parameters
+        **y** (`list` of `float`):
+        : The samples from the distribution.
+
+        **nu** (`float`, optional):
+        : The degrees of freedom. Default is `len(y) - 1`.
+
+        #### Raises
+        `ValueError`: If `y` is an empty list.
+
+        #### Notes
+        This constructor sorts the input data `y` and calculates the MLE
+        (Maximum Likelihood Estimate).  It computes a scale factor, `_y_scale`,
+        to prevent overflows when computing unnormalized CDF integrals.  The
+        input data `y` is then shifted and scaled according to this computed
+        scale.  The method also initializes a memoization dictionary `_cdf_memo`
+        for the unnormalized CDF, and a placeholder `_cdf_norm` for the
+        normalization constant of the CDF.
+        """
         if len(y) == 0:
             raise ValueError("empty input")
 
@@ -197,10 +258,27 @@ class LaplacePosterior:
 
     def _cdf_unnorm(self, beta):
         """
-        Unnormalized CDF of this distribution::
+        Computes the unnormalized cumulative distribution function (CDF).
+
+        #### Parameters
+        **beta** (`float`):
+        : The upper limit of the integration for the CDF.
+
+        #### Returns
+        Returns the unnormalized CDF evaluated at `beta`.
+
+        #### Notes
+        The method computes the unnormalized CDF as:
 
             cdf_unnorm(b) = int_{-oo}^{b} 1/(sum_j |y - b'|)**(m+1) db'
 
+        The method integrates piecewise, resolving the absolute values
+        separately for each section. The results of these calculations
+        are memoized to speed up subsequent computations.
+
+        It also handles special cases, such as when `beta` is not a number
+        (returns `beta` as is), or when `beta` is positive infinity
+        (memoizes the integral value at the end of the list `y`).
         """
         if beta != beta:
             return beta
@@ -256,7 +334,25 @@ class LaplacePosterior:
 
     def _ppf_unnorm(self, cdfx):
         """
-        Inverse function for _cdf_unnorm
+        Computes the inverse function of `_cdf_unnorm`.
+
+        #### Parameters
+        **cdfx** (`float`):
+        : The value for which to compute the inverse cumulative distribution
+        function (CDF).
+
+        #### Returns
+        Returns the unnormalized quantile function evaluated at `cdfx`.
+
+        #### Notes
+        This method computes the inverse of `_cdf_unnorm`. It first finds the
+        interval within which `cdfx` lies, then performs the inversion on this
+        interval.
+
+        Special cases are handled when the interval index `k` is 0 (the
+        computation of `beta` involves a check for negative infinity), or when
+        the calculated `c` is 0. The result `beta` is clipped at the upper bound
+        of the interval, ensuring it does not exceed `self.y[k]`.
         """
         # Find interval
         for k in range(len(self.y) + 1):
@@ -295,13 +391,49 @@ class LaplacePosterior:
 
     def pdf(self, beta):
         """
-        Probability distribution function
+        Computes the probability distribution function (PDF).
+
+        #### Parameters
+        **beta** (`float`)
+        : The point at which to evaluate the PDF.
+
+        #### Returns
+        A `float` which is the probability density function evaluated at `beta`.
+
+        #### Notes
+        This function computes the PDF by exponentiating the result of
+        `self.logpdf(beta)`.  The `logpdf` method should therefore be
+        implemented in the class that uses this method.
         """
         return math.exp(self.logpdf(beta))
 
     def logpdf(self, beta):
         """
-        Logarithm of probability distribution function
+        Computes the logarithm of the probability distribution function (log-PDF).
+
+        #### Parameters
+        **beta** (`float`)
+        : The point at which to evaluate the log-PDF.
+
+        #### Returns
+        A `float` which is the logarithm of the probability density function
+        evaluated at `beta`.
+
+        #### Notes
+        This function computes the log-PDF by first checking if the scale of the
+        distribution `_y_scale` is zero.  If so, it returns `math.inf` if `beta`
+        equals the maximum likelihood estimate `mle`, otherwise it returns
+        `-math.inf`.
+
+        The `beta` value is then transformed by subtracting the maximum
+        likelihood estimate `mle` and dividing by `_y_scale`.
+
+        If the unnormalized cumulative distribution function `_cdf_norm` has not
+        been computed yet, it is computed by calling `_cdf_unnorm(math.inf)`.
+
+        The function then computes the sum of absolute differences between
+        `beta` and all points in `y`, applies the log-PDF formula and returns
+        the result.
         """
         if self._y_scale == 0:
             return math.inf if beta == self.mle else -math.inf
@@ -319,7 +451,29 @@ class LaplacePosterior:
 
     def cdf(self, beta):
         """
-        Cumulative probability distribution function
+        Computes the cumulative distribution function (CDF).
+
+        #### Parameters
+        **beta** (`float`)
+        : The point at which to evaluate the CDF.
+
+        #### Returns
+        A `float` which is the value of the cumulative distribution function
+        evaluated at `beta`.
+
+        #### Notes
+        This function computes the CDF by first checking if the scale of the
+        distribution `_y_scale` is zero.  If so, it returns 1 if `beta` is
+        greater than the maximum likelihood estimate `mle`, and 0 otherwise.
+
+        The `beta` value is then transformed by subtracting the maximum
+        likelihood estimate `mle` and dividing by `_y_scale`.
+
+        If the unnormalized cumulative distribution function `_cdf_norm` has not
+        been computed yet, it is computed by calling `_cdf_unnorm(math.inf)`.
+
+        The function then computes the unnormalized CDF at `beta` and normalizes
+        it by dividing with `_cdf_norm`.
         """
         if self._y_scale == 0:
             return 1.0 * (beta > self.mle)
@@ -332,7 +486,31 @@ class LaplacePosterior:
 
     def ppf(self, cdf):
         """
-        Percent point function (inverse function for cdf)
+        Computes the percent point function (PPF), also known as the inverse
+        cumulative distribution function.
+
+        #### Parameters
+        **cdf** (`float`)
+        : The cumulative probability for which to compute the inverse CDF. It
+        must be between 0 and 1 (inclusive).
+
+        #### Returns
+        A `float` which is the value of the percent point function evaluated at
+        `cdf`.
+
+        #### Notes
+        This function computes the PPF by first checking if `cdf` is not between
+        0 and 1. If it is not, it returns `math.nan`.
+
+        If the scale of the distribution `_y_scale` is zero, it returns the
+        maximum likelihood estimate `mle`.
+
+        If the unnormalized cumulative distribution function `_cdf_norm` has not
+        been computed yet, it is computed by calling `_cdf_unnorm(math.inf)`.
+
+        The function then scales `cdf` by `_cdf_norm` (making sure it does not
+        exceed `_cdf_norm`), computes the unnormalized PPF at this scaled value,
+        and transforms it back to the original scale.
         """
         if cdf < 0 or cdf > 1.0:
             return math.nan
@@ -350,22 +528,42 @@ class LaplacePosterior:
 
 def compute_stats(samples, number):
     """
-    Statistical analysis of measured samples.
+    Performs statistical analysis on the provided samples.
 
-    Parameters
-    ----------
-    samples : list of float
-        List of total times (y) of benchmarks.
-    number : int
-        Repeat number for each sample.
+    #### Parameters
+    **samples** (`list` of `float`)
+    : A list of total times (in seconds) of benchmarks.
 
-    Returns
-    -------
-    beta_hat : float
-        Estimated time per iteration
-    stats : dict
-        Information on statistics of the estimator.
+    **number** (`int`)
+    : The number of times each benchmark was repeated.
 
+    #### Returns
+    **beta_hat** (`float`)
+    : The estimated time per iteration.
+
+    **stats** (`dict`)
+    : A dictionary containing various statistical measures of the estimator. It
+    includes:
+        - **"ci_99_a"**: The lower bound of the 99% confidence interval.
+        - **"ci_99_b"**: The upper bound of the 99% confidence interval.
+        - **"q_25"**: The 25th percentile of the sample times.
+        - **"q_75"**: The 75th percentile of the sample times.
+        - **"repeat"**: The total number of samples.
+        - **"number"**: The repeat number for each sample.
+
+    #### Notes
+    This function first checks if there are any samples. If there are none, it
+    returns `None, None`.
+
+    It then calculates the median and the 25th and 75th percentiles of the
+    samples. If the nonparametric confidence interval estimation did not provide
+    an estimate, it computes the posterior distribution for the location,
+    assuming exponential noise. The Maximum Likelihood Estimate (MLE) is equal
+    to the median. The function uses the confidence interval from that
+    distribution to extend beyond the sample bounds if necessary.
+
+    Finally, it produces the median as the result and a dictionary of the
+    computed statistics.
     """
 
     if len(samples) < 1:

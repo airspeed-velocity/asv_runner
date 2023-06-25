@@ -15,7 +15,31 @@ wall_timer = timeit.default_timer
 
 def recvall(sock, size):
     """
-    Receive data of given size from a socket connection
+    Receives data from a socket until the specified size of data has been received.
+
+    #### Parameters
+    **sock** (`socket`)
+    : The socket from which the data will be received. This socket should
+    already be connected to the other end from which data is to be received.
+
+    **size** (`int`)
+    : The total size of data to be received from the socket.
+
+    #### Returns
+    **data** (`bytes`)
+    : The data received from the socket. The length of this data will be equal
+    to the size specified.
+
+    #### Raises
+    **RuntimeError**
+    : If the socket closed before the specified size of data could be received.
+
+    #### Notes
+    This function continuously receives data from the provided socket in a loop
+    until the total length of the received data is equal to the specified size.
+    If the socket closes before the specified size of data could be received, a
+    `RuntimeError` is raised. The function returns the received data as a byte
+    string.
     """
     data = b""
     while len(data) < size:
@@ -29,6 +53,47 @@ def recvall(sock, size):
 
 
 def _run_server(args):
+    """
+    Runs a server that executes benchmarks based on the received commands.
+
+    #### Parameters
+    **args** (`tuple`)
+    : A tuple containing the benchmark directory and socket name.
+
+    - `benchmark_dir` (`str`): The directory where the benchmarks are located.
+    - `socket_name` (`str`): The name of the UNIX socket to be used for
+    - communication.
+
+    #### Raises
+    **RuntimeError**
+    : If the received command contains unknown data.
+
+    #### Notes
+    This function creates a server that listens on a UNIX socket for commands.
+    It can perform two actions based on the received command: quit or preimport
+    benchmarks.
+
+    If the command is "quit", the server stops running. If the command is
+    "preimport", the function imports all the benchmarks in the specified
+    directory, capturing all the I/O to a file during import. After the
+    benchmarks are imported, the function sends the contents of the output file
+    back through the socket.
+
+    If the action is not "quit" or "preimport", the function assumes it is a
+    command to run a specific benchmark. It then runs the benchmark and waits
+    for the results. It also handles a timeout for the benchmark execution and
+    sends the results back through the socket.
+
+    The function continuously accepts new commands until it receives a "quit"
+    command or a KeyboardInterrupt.
+
+    It uses UNIX domain sockets for inter-process communication. The name of the
+    socket is passed as a parameter in `args`. The socket is created, bound to
+    the socket name, and set to listen for connections. When a connection is
+    accepted, the command is read from the socket, parsed, and executed
+    accordingly. After executing the command, the server sends back the result
+    through the socket and waits for the next command.
+    """
     import signal
     import socket
 

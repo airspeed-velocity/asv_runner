@@ -11,17 +11,51 @@ terminal_width = shutil.get_terminal_size().columns
 
 
 def ceildiv(numerator, denominator):
-    """Ceiling division"""
+    """
+    Calculate the ceiling division of two numbers.
+
+    #### Parameters
+    **numerator** (`int`)
+    : The numerator in the division.
+
+    **denominator** (`int`)
+    : The denominator in the division.
+
+    #### Returns
+    `int`: The result of the division rounded up to the nearest integer.
+
+    #### Notes
+    This function calculates the ceiling division of two numbers, i.e.,
+    division that rounds up. It is equivalent to `math.ceil(numerator/denominator)`,
+    but avoids the conversion of numerator and denominator to float.
+    """
     return -((-numerator) // denominator)
 
 
 def human_float(value, significant=3, truncate_small=None, significant_zeros=False):
     """
-    Return a string representing a float with human friendly significant digits.
-    Switches to scientific notation for too large/small numbers.
-    If `truncate_small`, then leading zeros of numbers < 1 are counted as
-    significant. If not `significant_zeros`, trailing unnecessary zeros are
-    stripped.
+    Formats a float into a human-friendly string.
+
+    #### Parameters
+    **value** (`float`)
+    : The float value to format.
+
+    **significant** (`int`)
+    : Number of significant digits to include in the output. Default is 3.
+
+    **truncate_small** (`int`, optional)
+    : If defined, leading zeros of numbers < 1 are counted as significant.
+
+    **significant_zeros** (`bool`)
+    : If True, trailing unnecessary zeros are included. Default is False.
+
+    #### Returns
+    `str`: A string representing the float with human-friendly significant
+    digits.
+
+    #### Notes
+    Switches to scientific notation for very large or very small numbers.
+    The magnitude of the number is calculated using `math.log10(value)`.
     """
     if value == 0:
         return "0"
@@ -83,8 +117,7 @@ _human_time_units = (
 
 def human_time(seconds, err=None):
     """
-    Returns a human-friendly time string that is always exactly 6
-    characters long.
+    Formats a duration in seconds into a human-friendly time string.
 
     Depending on the number of seconds given, can be one of::
 
@@ -94,18 +127,19 @@ def human_time(seconds, err=None):
         1m 4s
           15s
 
-    Will be in color if console coloring is turned on.
+    The representation is always exactly 6 characters long.
 
-    Parameters
-    ----------
-    seconds : int
-        The number of seconds to represent
+    #### Parameters
+    **seconds** (`int`)
+    : The number of seconds to represent.
 
-    Returns
-    -------
-    time : str
-        A human-friendly representation of the given number of seconds
-        that is always exactly 6 characters.
+    **err** (`float`, optional)
+    : If provided, formats the duration as "{value}±{err}", e.g., "1h±5m".
+      It can be used to represent the uncertainty in the measurement.
+
+    #### Returns
+    `str`: A human-friendly representation of the given duration. If the
+           duration is NaN, returns "n/a".
     """
     units = _human_time_units
     seconds = float(seconds)
