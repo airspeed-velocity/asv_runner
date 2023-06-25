@@ -10,6 +10,27 @@ from hashlib import sha256
 
 
 def _get_attr(source, name, ignore_case=False):
+    """
+    Retrieves an attribute from a source by its name.
+
+    #### Parameters
+    **source** (`object`)
+    : The source from which to get the attribute.
+
+    **name** (`str`)
+    : The name of the attribute.
+
+    **ignore_case** (`bool`, optional)
+    : Whether to ignore case when comparing attribute names. Defaults to `False`.
+
+    #### Returns
+    **attr** (`object` or `None`)
+    : The attribute if it is found, else `None`.
+
+    #### Raises
+    **ValueError**
+    : If more than one attribute with the given name exists and `ignore_case` is `True`.
+    """
     if ignore_case:
         attrs = [
             getattr(source, key) for key in dir(source) if key.lower() == name.lower()
@@ -26,6 +47,23 @@ def _get_attr(source, name, ignore_case=False):
 
 
 def _get_all_attrs(sources, name, ignore_case=False):
+    """
+    Yields attributes from a list of sources by their name.
+
+    #### Parameters
+    **sources** (`List[object]`)
+    : The list of sources from which to get the attribute.
+
+    **name** (`str`)
+    : The name of the attribute.
+
+    **ignore_case** (`bool`, optional)
+    : Whether to ignore case when comparing attribute names. Defaults to `False`.
+
+    #### Yields
+    **val** (`object`)
+    : The attribute if it is found in the source.
+    """
     for source in sources:
         val = _get_attr(source, name, ignore_case=ignore_case)
         if val is not None:
@@ -33,12 +71,47 @@ def _get_all_attrs(sources, name, ignore_case=False):
 
 
 def _get_first_attr(sources, name, default, ignore_case=False):
+    """
+    Retrieves the first attribute from a list of sources by its name.
+
+    #### Parameters
+    **sources** (`List[object]`)
+    : The list of sources from which to get the attribute.
+
+    **name** (`str`)
+    : The name of the attribute.
+
+    **default** (`object`)
+    : The default value to return if no attribute is found.
+
+    **ignore_case** (`bool`, optional)
+    : Whether to ignore case when comparing attribute names. Defaults to `False`.
+
+    #### Returns
+    **attr** (`object`)
+    : The first attribute found or the default value if no attribute is found.
+    """
     for val in _get_all_attrs(sources, name, ignore_case=ignore_case):
         return val
     return default
 
 
 def get_setup_cache_key(func):
+    """
+    Retrieves the cache key for a function's setup.
+
+    #### Parameters
+    **func** (`function`)
+    : The function for which to get the cache key.
+
+    #### Returns
+    **cache_key** (`str` or `None`)
+    : The cache key if the function is not `None`, else `None`.
+
+    #### Notes
+    The cache key is a string composed of the function's module name and the line
+    number where the function's source code starts.
+    """
     if func is None:
         return None
 
@@ -52,7 +125,28 @@ def get_setup_cache_key(func):
 
 def get_source_code(items):
     """
-    Extract source code of given items, and concatenate and dedent it.
+    Extracts, concatenates, and dedents the source code of the given items.
+
+    #### Parameters
+    **items** (`Iterable[object]`)
+    : An iterable of items, typically functions or methods, for which to extract the
+    source code.
+
+    #### Returns
+    **source_code** (`str`)
+    : The concatenated and dedented source code of the items.
+
+    #### Notes
+    The function retrieves the source code of each item. If the item has a
+    `pretty_source` attribute, it uses that as the source code. Otherwise, it
+    attempts to use the `inspect` module's `getsourcelines` function to extract
+    the source code.
+
+    The function also adds class names to methods and properly indents the
+    source code.  If the source code belongs to a method, the function retrieves
+    the class name and prepends it to the source code, properly indenting it to
+    reflect its position within the class. If the source code belongs to the
+    same class as the previous item, only the indentation is adjusted.
     """
     sources = []
     prev_class_name = None
@@ -96,6 +190,29 @@ def get_source_code(items):
 
 
 def _get_sourceline_info(obj, basedir):
+    """
+    Retrieves the source file and line number information of the given object.
+
+    #### Parameters
+    **obj** (`object`)
+    : The object for which to retrieve source file and line number information. This is
+    typically a function or a method.
+
+    **basedir** (`str`)
+    : The base directory relative to which the source file path should be expressed.
+
+    #### Returns
+    **sourceline_info** (`str`)
+    : A string containing the relative path of the source file and the line number where
+    the object is defined, in the format `' in {filename}:{lineno}'`. If the source file
+    or line number cannot be determined, an empty string is returned.
+
+    #### Notes
+    The function uses the `inspect` module's `getsourcefile` and
+    `getsourcelines` functions to determine the source file and line number of
+    the object, respectively.  The source file path is converted to a path
+    relative to `basedir` using `os.path.relpath`.
+    """
     try:
         fn = inspect.getsourcefile(obj)
         fn = os.path.relpath(fn, basedir)
@@ -106,6 +223,39 @@ def _get_sourceline_info(obj, basedir):
 
 
 def check_num_args(root, benchmark_name, func, min_num_args, max_num_args=None):
+    """
+    Verifies if the function under benchmarking accepts a correct number of arguments.
+
+    #### Parameters
+    **root** (`str`)
+    : The root directory for the function's source file (used to print detailed error
+    messages).
+
+    **benchmark_name** (`str`)
+    : The name of the benchmark for which the function is being checked (used in error
+    messages).
+
+    **func** (`function`)
+    : The function to check for correct number of arguments.
+
+    **min_num_args** (`int`)
+    : The minimum number of arguments the function should accept.
+
+    **max_num_args** (`int`, optional)
+    : The maximum number of arguments the function should accept. If not provided,
+    `max_num_args` is assumed to be the same as `min_num_args`.
+
+    #### Returns
+    **validity** (`bool`)
+    : True if the function accepts a correct number of arguments, False otherwise.
+
+    #### Notes
+    The function uses the `inspect` module's `getfullargspec` function to determine the
+    number of arguments the function accepts. It correctly handles functions, methods,
+    variable argument lists, and functions with default argument values. In case of any
+    error or if the function does not accept a correct number of arguments, an error
+    message is printed to standard output.
+    """
     if max_num_args is None:
         max_num_args = min_num_args
 
@@ -151,6 +301,35 @@ def check_num_args(root, benchmark_name, func, min_num_args, max_num_args=None):
 
 
 def _repr_no_address(obj):
+    """
+    Returns a string representing the object, but without its memory address.
+
+    #### Parameters
+    **obj** (`object`)
+    : The object to represent.
+
+    #### Returns
+    **representation** (`str`)
+    : A string representation of the object without its memory address.
+
+    #### Notes
+    When Python's built-in `repr` function is used on an object, it often includes
+    the memory address of the object. In some cases, this might not be desirable
+    (for example, when comparing object representations in unit tests, where the
+    memory address is not relevant). This function provides a way to get a string
+    representation of an object without its memory address.
+
+    The function works by first getting the `repr` of the object, then using a
+    regular expression to detect and remove the memory address if it's present.
+    To avoid false positives, the function also gets the `repr` of the object
+    using the `object` class's `__repr__` method (which always includes the
+    address), and only removes the address from the original `repr` if it matches
+    the address in the `object.__repr__`.
+
+    Please note, this function is not guaranteed to remove the memory address for
+    all objects. It is primarily intended to work for objects that have a `repr`
+    similar to the default one provided by the `object` class.
+    """
     result = repr(obj)
     address_regex = re.compile(r"^(<.*) at (0x[\da-fA-F]*)(>)$")
     match = address_regex.match(result)
@@ -169,7 +348,16 @@ def _repr_no_address(obj):
 
 class Benchmark:
     """
-    Represents a single benchmark.
+    Class representing a single benchmark. The class encapsulates
+    functions and methods that can be marked as benchmarks, along with
+    setup and teardown methods, timing and other configuration.
+
+    #### Notes
+    The class uses regex to match method names that will be considered
+    as benchmarks. The matched functions are then processed for
+    benchmarking using various helper methods.
+
+    By default, a benchmark's timeout is set to 60 seconds.
     """
 
     # The regex of the name of function or method to be considered as
@@ -178,6 +366,66 @@ class Benchmark:
     name_regex = re.compile("^$")
 
     def __init__(self, name, func, attr_sources):
+        """
+        Initialize a new instance of `Benchmark`.
+
+        #### Parameters
+        **name** (`str`)
+        : The name of the benchmark.
+
+        **func** (`function`)
+        : The function to benchmark.
+
+        **attr_sources** (`list`)
+        : List of sources from which attributes of the benchmark will be drawn.
+        These attributes include setup, teardown, timeout, etc.
+
+        #### Attributes
+        **pretty_name** (`str`)
+        : A user-friendly name for the function being benchmarked, if available.
+
+        **_setups** (`list`)
+        : List of setup methods to be executed before the benchmark.
+
+        **_teardowns** (`list`)
+        : List of teardown methods to be executed after the benchmark.
+
+        **_setup_cache** (`function`)
+        : A special setup method that is only run once per parameter set.
+
+        **setup_cache_key** (`str`)
+        : A unique key for the setup cache.
+
+        **setup_cache_timeout** (`float`)
+        : The time after which the setup cache should be invalidated.
+
+        **timeout** (`float`)
+        : The maximum time the benchmark is allowed to run before it is aborted.
+
+        **code** (`str`)
+        : The source code of the function to be benchmarked and its setup methods.
+
+        **version** (`str`)
+        : A version string derived from a hash of the code.
+
+        **_params** (`list`)
+        : List of parameters for the function to be benchmarked.
+
+        **param_names** (`list`)
+        : List of names for the parameters.
+
+        **_current_params** (`tuple`)
+        : The current set of parameters to be passed to the function during the
+        benchmark.
+
+        **params** (`list`)
+        : The list of parameters with unique representations for exporting.
+
+        #### Raises
+        **ValueError**
+        : If `param_names` or `_params` is not a list or if the number of
+        parameters does not match the number of parameter names.
+        """
         self.name = name
         self.func = func
         self.pretty_name = getattr(func, "pretty_name", None)
@@ -240,7 +488,28 @@ class Benchmark:
                         dupe_dict[name] += 1
                 self.params[i] = param
 
+    def __repr__(self):
+        return f"<{self.__class__.__name__} {self.name}>"
+
     def set_param_idx(self, param_idx):
+        """
+        Set the current parameter values for the benchmark based on a parameter
+        index.
+
+        This method updates the `_current_params` attribute with the set of
+        parameter values that correspond to the provided parameter index.
+
+        #### Parameters
+        **param_idx** (`int`)
+        : The index of the desired parameter set in the Cartesian product of
+        `_params` attribute list.
+
+        #### Raises
+        **ValueError**
+        : If the provided parameter index is not valid. This could occur if the
+        index does not correspond to any element in the Cartesian product of the
+        `_params` list.
+        """
         try:
             (self._current_params,) = itertools.islice(
                 itertools.product(*self._params), param_idx, param_idx + 1
@@ -252,14 +521,35 @@ class Benchmark:
 
     def insert_param(self, param):
         """
-        Insert a parameter at the front of the parameter list.
+        Inserts a parameter at the beginning of the current parameter list.
+
+        This method modifies the `_current_params` attribute, inserting the provided
+        parameter value at the front of the parameter tuple.
+
+        #### Parameters
+        **param** (`Any`)
+        : The parameter value to insert at the front of `_current_params`.
         """
         self._current_params = tuple([param] + list(self._current_params))
 
-    def __repr__(self):
-        return f"<{self.__class__.__name__} {self.name}>"
-
     def check(self, root):
+        """
+        Checks call syntax (argument count) for benchmark's setup, call, and teardown.
+
+        #### Parameters
+        **root** (`Any`)
+        : The root context for checking argument count in setup, call and teardown.
+
+        #### Returns
+        **result** (`bool`)
+        : `True` if correct argument count is used in all methods, `False` otherwise.
+
+        #### Notes
+        The call syntax is checked only based on the number of arguments.  It
+        also sets the current parameters for the benchmark if they exist.  The
+        number of arguments required by setup, call, and teardown methods may
+        increase if a setup cache is defined.
+        """
         # Check call syntax (number of arguments only...)
         ok = True
 
@@ -320,6 +610,28 @@ class Benchmark:
         return self.run(*self._current_params)
 
     def do_profile(self, filename=None):
+        """
+        Executes the benchmark's function with profiling using `cProfile`.
+
+        #### Parameters
+        **filename** (`str`, optional)
+        : The name of the file where the profiling data should be saved. If not
+          provided, the profiling data will not be saved.
+
+        #### Raises
+        **RuntimeError**
+        : If the `cProfile` module couldn't be imported.
+
+        #### Notes
+        The method uses an inner function `method_caller` to call the function
+        to be profiled. The function and its parameters should be available in
+        the scope where `method_caller` is called.
+
+        The `cProfile` module should be available, or else a `RuntimeError` is
+        raised. If a `filename` is provided, the profiling results will be saved
+        to that file.
+        """
+
         def method_caller():
             run(*params)  # noqa:F821 undefined name
 
