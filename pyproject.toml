@@ -3,9 +3,6 @@
 [project]
 name = "asv_runner"
 description = "Core Python benchmark code for ASV"
-homepage = "https://haozeke.github.io/asv_runner/"
-repository = "https://github.com/HaoZeke/asv_runner"
-documentation = "https://haozeke.github.io/asv_runner/"
 authors = [
     { name = "Rohit Goswami", email = "rog32@hi.is" },
 ]
@@ -66,3 +63,8 @@ write_to = "asv_runner/_version.py"
 [tool.pdm.scripts]
 lint = {composite = ["ruff --fix asv_runner/", "black asv_runner/"]}
 mkdoc = {composite = ["sphinx-build -b html docs/source docs/build/html"]}
+
+[project.urls]
+homepage = "https://haozeke.github.io/asv_runner/"
+repository = "https://github.com/HaoZeke/asv_runner"
+documentation = "https://haozeke.github.io/asv_runner/"
