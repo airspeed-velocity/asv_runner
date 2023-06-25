@@ -3,6 +3,9 @@
 [project]
 name = "asv_runner"
 description = "Core Python benchmark code for ASV"
+homepage = "https://haozeke.github.io/asv_runner/"
+repository = "https://github.com/HaoZeke/asv_runner"
+documentation = "https://haozeke.github.io/asv_runner/"
 authors = [
     { name = "Rohit Goswami", email = "rog32@hi.is" },
 ]
