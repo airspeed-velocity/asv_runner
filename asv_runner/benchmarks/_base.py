@@ -31,19 +31,18 @@ def _get_attr(source, name, ignore_case=False):
     **ValueError**
     : If more than one attribute with the given name exists and `ignore_case` is `True`.
     """
-    if ignore_case:
-        attrs = [
-            getattr(source, key) for key in dir(source) if key.lower() == name.lower()
-        ]
-
-        if len(attrs) > 1:
-            raise ValueError(f"{source.__name__} contains multiple {name} functions.")
-        elif len(attrs) == 1:
-            return attrs[0]
-        else:
-            return None
-    else:
+    if not ignore_case:
         return getattr(source, name, None)
+    attrs = [
+        getattr(source, key) for key in dir(source) if key.lower() == name.lower()
+    ]
+
+    if len(attrs) > 1:
+        raise ValueError(f"{source.__name__} contains multiple {name} functions.")
+    elif len(attrs) == 1:
+        return attrs[0]
+    else:
+        return None
 
 
 def _get_all_attrs(sources, name, ignore_case=False):
@@ -273,20 +272,13 @@ def check_num_args(root, benchmark_name, func, min_num_args, max_num_args=None):
     if inspect.ismethod(func):
         max_args -= 1
 
-    if info.defaults is not None:
-        min_args = max_args - len(info.defaults)
-    else:
-        min_args = max_args
-
+    min_args = max_args if info.defaults is None else max_args - len(info.defaults)
     if info.varargs is not None:
         max_args = math.inf
 
     ok = (min_args <= max_num_args) and (min_num_args <= max_args)
     if not ok:
-        if min_args == max_args:
-            args_str = min_args
-        else:
-            args_str = f"{min_args}-{max_args}"
+        args_str = min_args if min_args == max_args else f"{min_args}-{max_args}"
         if min_num_args == max_num_args:
             num_args_str = min_num_args
         else:
@@ -332,16 +324,14 @@ def _repr_no_address(obj):
     """
     result = repr(obj)
     address_regex = re.compile(r"^(<.*) at (0x[\da-fA-F]*)(>)$")
-    match = address_regex.match(result)
-    if match:
-        suspected_address = match.group(2)
+    if match := address_regex.match(result):
+        suspected_address = match[2]
         # Double check this is the actual address
         default_result = object.__repr__(obj)
-        match2 = address_regex.match(default_result)
-        if match2:
-            known_address = match2.group(2)
+        if match2 := address_regex.match(default_result):
+            known_address = match2[2]
             if known_address == suspected_address:
-                result = match.group(1) + match.group(3)
+                result = match[1] + match[3]
 
     return result
 
@@ -464,7 +454,7 @@ class Benchmark:
             # Accept a single list for one parameter only
             self._params = [self._params]
         else:
-            self._params = [[item for item in entry] for entry in self._params]
+            self._params = [list(entry) for entry in self._params]
 
         if len(self.param_names) != len(self._params):
             self.param_names = self.param_names[: len(self._params)]
@@ -484,7 +474,7 @@ class Benchmark:
                 for j in range(len(param)):
                     name = param[j]
                     if name in dupe_dict:
-                        param[j] = name + f" ({dupe_dict[name]})"
+                        param[j] = f"{name} ({dupe_dict[name]})"
                         dupe_dict[name] += 1
                 self.params[i] = param
 
@@ -561,22 +551,26 @@ class Benchmark:
 
         if self.setup_cache_key is not None:
             ok = ok and check_num_args(
-                root, self.name + ": setup_cache", self._setup_cache, 0
+                root, f"{self.name}: setup_cache", self._setup_cache, 0
             )
             max_num_args += 1
 
         for setup in self._setups:
             ok = ok and check_num_args(
-                root, self.name + ": setup", setup, min_num_args, max_num_args
+                root, f"{self.name}: setup", setup, min_num_args, max_num_args
             )
 
         ok = ok and check_num_args(
-            root, self.name + ": call", self.func, min_num_args, max_num_args
+            root, f"{self.name}: call", self.func, min_num_args, max_num_args
         )
 
         for teardown in self._teardowns:
             ok = ok and check_num_args(
-                root, self.name + ": teardown", teardown, min_num_args, max_num_args
+                root,
+                f"{self.name}: teardown",
+                teardown,
+                min_num_args,
+                max_num_args,
             )
 
         return ok
