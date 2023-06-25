@@ -7,6 +7,25 @@ from .benchmarks.time import TimeBenchmark
 
 
 def _timing(argv):
+    """
+    Executes a timing benchmark.
+
+    #### Parameters
+    **argv** (`list` of `str`)
+    : Command line arguments.
+
+    #### Notes
+    This function parses the command line arguments, including options for setup,
+    number of repeats, timing method, and output format (JSON or not). It selects
+    the appropriate timing function based on the `--timer` argument.
+
+    It creates an instance of the `TimeBenchmark` class, with the provided statement
+    to be executed, and runs it. The setup is provided from the `--setup` argument.
+
+    Once the benchmark is run, it computes the statistics of the results and formats
+    the output. If the `--json` flag is not set, it prints the output in a human-
+    readable format. Otherwise, it outputs the result, samples, and stats as a JSON.
+    """
     import argparse
 
     import asv_runner.console
