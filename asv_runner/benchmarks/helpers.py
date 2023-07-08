@@ -1,5 +1,6 @@
 from functools import wraps
 
+
 def skip_benchmark(func):
     """
     Decorator to mark a function as skipped for benchmarking.
