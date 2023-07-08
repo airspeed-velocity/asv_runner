@@ -5,21 +5,22 @@ name = "asv_runner"
 description = "Core Python benchmark code for ASV"
 authors = [
     { name = "Rohit Goswami", email = "rog32@hi.is" },
+    { name = "Michael Droettboom", email = "mdroe@stsci.edu" },
 ]
 maintainers = [
     { name = "Rohit Goswami", email = "rog32@hi.is" },
 ]
 classifiers = [
-  'Development Status :: 3 - Alpha',
+  'Development Status :: 4 - Beta',
   'Programming Language :: Python',
-  'License :: OSI Approved :: MIT License',
+  'License :: OSI Approved :: BSD License',
   'Topic :: System :: Benchmark',
 ]
 version = "0.0.6"
 dependencies = [] # Make sure there's nothing here
 requires-python = ">=3.8"
 readme = "README.md"
-license = { text = "MIT" }
+license = {text = "BSD-3-Clause"}
 
 [tool.pdm.dev-dependencies]
 lint = [
@@ -65,6 +66,6 @@ lint = {composite = ["ruff --fix asv_runner/", "black asv_runner/"]}
 mkdoc = {composite = ["sphinx-build -b html docs/source docs/build/html"]}
 
 [project.urls]
-homepage = "https://haozeke.github.io/asv_runner/"
-repository = "https://github.com/HaoZeke/asv_runner"
-documentation = "https://haozeke.github.io/asv_runner/"
+homepage = "https://airspeed-velocity.github.io/asv_runner/"
+repository = "https://github.com/airspeed-velocity/asv_runner"
+documentation = "https://airspeed-velocity.github.io/asv_runner/"
