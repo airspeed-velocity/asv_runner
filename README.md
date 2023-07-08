@@ -1,4 +1,5 @@
-# About
+# About [![Documentation](https://img.shields.io/badge/Documentation-latest-brightgreen?style=for-the-badge)](https://asv.readthedocs.io/projects/asv-runner/en/latest/)
+
 
 Core Python benchmark code for `asv`.
 

@@ -67,6 +67,6 @@ lint = {composite = ["ruff --fix asv_runner/", "black asv_runner/"]}
 mkdoc = {composite = ["sphinx-build -b html docs/source docs/build/html"]}
 
 [project.urls]
-homepage = "https://airspeed-velocity.github.io/asv_runner/"
+homepage = "https://asv.readthedocs.io/projects/asv-runner/en/latest/"
 repository = "https://github.com/airspeed-velocity/asv_runner"
-documentation = "https://airspeed-velocity.github.io/asv_runner/"
+documentation = "https://asv.readthedocs.io/projects/asv-runner/en/latest/"
