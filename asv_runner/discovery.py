@@ -38,6 +38,10 @@ def _get_benchmark(attr_name, module, klass, func):
     If a match is found, it creates a new benchmark instance and returns it.
     If no match is found, it returns None.
     """
+    # Check if the function has been marked to be skipped
+    if getattr(func, "skip_benchmark", False):
+        return
+
     try:
         name = func.benchmark_name
     except AttributeError:
