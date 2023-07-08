@@ -5,21 +5,22 @@ name = "asv_runner"
 description = "Core Python benchmark code for ASV"
 authors = [
     { name = "Rohit Goswami", email = "rog32@hi.is" },
+    { name = "Michael Droettboom", email = "mdroe@stsci.edu" },
 ]
 maintainers = [
     { name = "Rohit Goswami", email = "rog32@hi.is" },
 ]
 classifiers = [
-  'Development Status :: 3 - Alpha',
+  'Development Status :: 4 - Beta',
   'Programming Language :: Python',
-  'License :: OSI Approved :: MIT License',
+  'License :: OSI Approved :: BSD License',
   'Topic :: System :: Benchmark',
 ]
 version = "0.0.6"
 dependencies = [] # Make sure there's nothing here
 requires-python = ">=3.8"
 readme = "README.md"
-license = { text = "MIT" }
+license = {text = "BSD-3-Clause"}
 
 [tool.pdm.dev-dependencies]
 lint = [
