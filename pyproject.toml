@@ -22,11 +22,7 @@ requires-python = ">=3.8"
 readme = "README.md"
 license = {text = "BSD-3-Clause"}
 
-[tool.pdm.dev-dependencies]
-lint = [
-    "ruff",
-    "black",
-]
+[project.optional-dependencies]
 docs = [
     'furo',
     'sphinx',
@@ -37,6 +33,11 @@ docs = [
     'sphinxcontrib-spelling',
     "myst-parser>=2",
     "sphinx-autodoc2>=0.4.2",
+]
+[tool.pdm.dev-dependencies]
+lint = [
+    "ruff",
+    "black",
 ]
 [build-system]
 requires = ["pdm-backend"]
