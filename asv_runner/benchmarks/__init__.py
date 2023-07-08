@@ -32,6 +32,7 @@ This code is useful in a benchmarking suite where new benchmarks can be added si
 adding a new submodule with an "export_as_benchmark" attribute.
 """
 
+
 import importlib
 import pkgutil
 
@@ -47,8 +48,7 @@ for module_name in module_names:
     try:
         module = importlib.import_module(f"{pkgname}.{module_name}")
         if "export_as_benchmark" in dir(module):
-            for bench in getattr(module, "export_as_benchmark"):
-                benchmark_types.append(bench)
+            benchmark_types.extend(iter(getattr(module, "export_as_benchmark")))
     except NotRequired:
         # Ignored.
         pass

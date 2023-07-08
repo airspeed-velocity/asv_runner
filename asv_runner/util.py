@@ -78,10 +78,7 @@ def human_float(value, significant=3, truncate_small=None, significant_zeros=Fal
     if magnitude <= -5 or magnitude >= 9:
         # Too many digits, use scientific notation
         fmt = f"{{0:.{significant}e}}"
-    elif value == int(value):
-        value = int(round(value, num_digits))
-        fmt = "{0:d}"
-    elif num_digits <= 0:
+    elif value == int(value) or num_digits <= 0:
         value = int(round(value, num_digits))
         fmt = "{0:d}"
     else:
@@ -162,7 +159,6 @@ def human_time(seconds, err=None):
             str_time = human_float(seconds / units[i][1], 3, significant_zeros=True)
             if err is None:
                 return f"{str_time:s}{units[i][0]}"
-            else:
-                str_err = human_float(err / units[i][1], 1, truncate_small=2)
-                return f"{str_time:s}±{str_err:s}{units[i][0]}"
+            str_err = human_float(err / units[i][1], 1, truncate_small=2)
+            return f"{str_time:s}±{str_err:s}{units[i][0]}"
     return "~0"

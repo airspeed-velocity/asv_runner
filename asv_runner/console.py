@@ -34,9 +34,7 @@ def isatty(file):
     but some user-defined types may not. In such cases, this function
     assumes those are not ttys.
     """
-    if hasattr(file, "isatty"):
-        return file.isatty()
-    return False
+    return file.isatty() if hasattr(file, "isatty") else False
 
 
 def _color_text(text, color):
@@ -133,12 +131,9 @@ def _write_with_fallback(s, fileobj):
     if not isinstance(s, str):
         raise ValueError("Input string is not a Unicode string")
 
-    try:
+    with contextlib.suppress(UnicodeError):
         fileobj.write(s)
         return
-    except UnicodeError:
-        pass
-
     # Fall back to writing bytes
     enc = locale.getpreferredencoding()
     try:
@@ -192,21 +187,17 @@ def color_print(*args, **kwargs):
     if isatty(file) and not WIN:
         for i in range(0, len(args), 2):
             msg = args[i]
-            if i + 1 == len(args):
-                color = ""
-            else:
-                color = args[i + 1]
-
+            color = "" if i + 1 == len(args) else args[i + 1]
             if color:
                 msg = _color_text(msg, color)
             _write_with_fallback(msg, file)
 
-        _write_with_fallback(end, file)
     else:
         for i in range(0, len(args), 2):
             msg = args[i]
             _write_with_fallback(msg, file)
-        _write_with_fallback(end, file)
+
+    _write_with_fallback(end, file)
 
 
 def get_answer_default(prompt, default, use_defaults=False):
@@ -238,16 +229,11 @@ def get_answer_default(prompt, default, use_defaults=False):
         return default
 
     x = input()
-    if x.strip() == "":
-        return default
-    return x
+    return default if x.strip() == "" else x
 
 
 def truncate_left(s, l):
-    if len(s) > l:
-        return "..." + s[-(l - 3) :]
-    else:
-        return s
+    return f"...{s[-(l - 3):]}" if len(s) > l else s
 
 
 class Log:
@@ -275,11 +261,7 @@ class Log:
             color_print("")
         parts = record.msg.split("\n", 1)
         first_line = parts[0]
-        if len(parts) == 1:
-            rest = None
-        else:
-            rest = parts[1]
-
+        rest = None if len(parts) == 1 else parts[1]
         indent = self._indent + 1
         continued = getattr(record, "continued", False)
 
@@ -313,11 +295,11 @@ class Log:
         else:
             color = "red"
 
-        spaces = " " * indent
         color_print(first_line, color, end="")
         if rest is not None:
             color_print("")
             detail = textwrap.dedent(rest)
+            spaces = " " * indent
             for line in detail.split("\n"):
                 color_print(spaces, end="")
                 color_print(line)
