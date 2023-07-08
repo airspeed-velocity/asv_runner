@@ -30,13 +30,14 @@ def _get_benchmark(attr_name, module, klass, func):
     #### Returns
     **benchmark** (Benchmark instance or None)
     : A benchmark instance with the name of the benchmark, the function to be
-    benchmarked, and its sources. Returns None if no matching benchmark is found.
+    benchmarked, and its sources. Returns None if no matching benchmark is found
+    or the function is marked to be skipped.
 
     #### Notes
-    The function tries to get the `benchmark_name` from `func`. If it fails,
-    it uses `attr_name` to match with the name regex in the benchmark types.
-    If a match is found, it creates a new benchmark instance and returns it.
-    If no match is found, it returns None.
+    The function tries to get the `benchmark_name` from `func`. If it fails, it
+    uses `attr_name` to match with the name regex in the benchmark types.  If a
+    match is found, it creates a new benchmark instance and returns it.  If no
+    match is found or the function is marked to be skipped, it returns None.
     """
     # Check if the function has been marked to be skipped
     if getattr(func, "skip_benchmark", False):
