@@ -100,9 +100,8 @@ def disc_modules(module_name, ignore_import_errors=False):
     yield module
 
     if getattr(module, "__path__", None):
-        for _, name, _ in pkgutil.iter_modules(module.__path__, module_name + "."):
-            for item in disc_modules(name, ignore_import_errors):
-                yield item
+        for _, name, _ in pkgutil.iter_modules(module.__path__, f"{module_name}."):
+            yield from disc_modules(name, ignore_import_errors)
 
 
 def disc_benchmarks(root, ignore_import_errors=False):
@@ -204,7 +203,7 @@ def get_benchmark_from_name(root, name, extra_params=None):
     # try to directly import benchmark function by guessing its import module name
     parts = name.split(".")
     for i in [1, 2]:
-        path = os.path.join(root, *parts[:-i]) + ".py"
+        path = f"{os.path.join(root, *parts[:-i])}.py"
         if not os.path.isfile(path):
             continue
         modname = ".".join([os.path.basename(root)] + parts[:-i])
@@ -274,12 +273,12 @@ def list_benchmarks(root, fp):
     for benchmark in disc_benchmarks(root):
         if not first:
             fp.write(", ")
-        clean = dict(
-            (k, v)
+        clean = {
+            k: v
             for (k, v) in benchmark.__dict__.items()
             if isinstance(v, (str, int, float, list, dict, bool))
             and not k.startswith("_")
-        )
+        }
         json.dump(clean, fp, skipkeys=True)
         first = False
     fp.write("]")
