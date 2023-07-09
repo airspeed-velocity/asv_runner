@@ -1,7 +1,7 @@
 import functools
 
 
-def skip_params(skip_params_dict):
+def skip_for_params(skip_params_list):
     """
     Decorator to set skip parameters for a benchmark function.
 
@@ -28,7 +28,7 @@ def skip_params(skip_params_dict):
         def wrapper(*args, **kwargs):
             return func(*args, **kwargs)
 
-        setattr(wrapper, "skip_params", skip_params_dict)
+        setattr(wrapper, "skip_params", skip_params_list)
         return wrapper
 
     return decorator
@@ -61,4 +61,4 @@ def skip_benchmark(func):
     return wrapper
 
 
-__all__ = [skip_params, skip_benchmark]
+__all__ = [skip_for_params, skip_benchmark]

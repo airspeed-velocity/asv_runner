@@ -519,14 +519,7 @@ class Benchmark:
         )
 
         # Fetch skip parameters
-        skip_dict = _get_first_attr(attr_sources, "skip_params", {})
-
-        # Create list of tuples of parameter combinations to be skipped
-        self._skip_tuples = [
-            (value, key)
-            for key, values in skip_dict.items()
-            for value in (values if isinstance(values, list) else [values])
-        ]
+        self._skip_tuples = _get_first_attr(attr_sources, "skip_params", [])
 
         # Exported parameter representations
         self.params = _unique_param_ids(self._params)
