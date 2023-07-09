@@ -219,7 +219,7 @@ def _get_sourceline_info(obj, basedir):
         return ""
 
 
-def check_num_args(root, benchmark_name, func, min_num_args, max_num_args=None):
+def _check_num_args(root, benchmark_name, func, min_num_args, max_num_args=None):
     """
     Verifies if the function under benchmarking accepts a correct number of arguments.
 
@@ -548,22 +548,22 @@ class Benchmark:
         max_num_args = min_num_args
 
         if self.setup_cache_key is not None:
-            ok = ok and check_num_args(
+            ok = ok and _check_num_args(
                 root, f"{self.name}: setup_cache", self._setup_cache, 0
             )
             max_num_args += 1
 
         for setup in self._setups:
-            ok = ok and check_num_args(
+            ok = ok and _check_num_args(
                 root, f"{self.name}: setup", setup, min_num_args, max_num_args
             )
 
-        ok = ok and check_num_args(
+        ok = ok and _check_num_args(
             root, f"{self.name}: call", self.func, min_num_args, max_num_args
         )
 
         for teardown in self._teardowns:
-            ok = ok and check_num_args(
+            ok = ok and _check_num_args(
                 root,
                 f"{self.name}: teardown",
                 teardown,
