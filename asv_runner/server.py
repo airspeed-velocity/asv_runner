@@ -137,9 +137,7 @@ def _run_server(args):
                 # Import benchmark suite before forking.
                 # Capture I/O to a file during import.
                 with posix_redirect_output(stdout_file, permanent=False):
-                    for _ in disc_benchmarks(
-                        benchmark_dir, ignore_import_errors=True
-                    ):
+                    for _ in disc_benchmarks(benchmark_dir, ignore_import_errors=True):
                         pass
 
                 # Report result

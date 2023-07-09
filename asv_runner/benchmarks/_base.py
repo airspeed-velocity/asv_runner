@@ -33,9 +33,7 @@ def _get_attr(source, name, ignore_case=False):
     """
     if not ignore_case:
         return getattr(source, name, None)
-    attrs = [
-        getattr(source, key) for key in dir(source) if key.lower() == name.lower()
-    ]
+    attrs = [getattr(source, key) for key in dir(source) if key.lower() == name.lower()]
 
     if len(attrs) > 1:
         raise ValueError(f"{source.__name__} contains multiple {name} functions.")

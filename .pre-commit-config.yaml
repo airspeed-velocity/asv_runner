@@ -13,8 +13,12 @@ repos:
     hooks:
     -   id: isort
         name: isort (python)
--   repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: 'v0.0.257'
+-   repo: https://github.com/psf/black
+    rev: 23.3.0
+    hooks:
+    -   id: black
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.0.272
     hooks:
     -   id: ruff
-        args: ["--fix"]
+        args: ["--fix", "--show-source"]
