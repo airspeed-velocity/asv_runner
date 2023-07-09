@@ -334,6 +334,79 @@ def _repr_no_address(obj):
     return result
 
 
+def _validate_params(params, param_names, name):
+    """
+    Validates the params and param_names attributes and returns validated lists.
+
+    #### Parameters
+    **params** (`list`)
+    : List of parameters for the function to be benchmarked.
+
+    **param_names** (`list`)
+    : List of names for the parameters.
+
+    **name** (`str`)
+    : The name of the benchmark.
+
+    #### Returns
+    **params**, **param_names** (`list`, `list`)
+    : The validated parameter and parameter name lists.
+    """
+
+    try:
+        param_names = [str(x) for x in list(param_names)]
+    except ValueError:
+        raise ValueError(f"{name}.param_names is not a list of strings")
+
+    try:
+        params = list(params)
+    except ValueError:
+        raise ValueError(f"{name}.params is not a list")
+
+    if params and not isinstance(params[0], (tuple, list)):
+        params = [params]
+    else:
+        params = [list(entry) for entry in params]
+
+    if len(param_names) != len(params):
+        param_names = param_names[: len(params)]
+        param_names += [
+            "param%d" % (k + 1,) for k in range(len(param_names), len(params))
+        ]
+
+    return params, param_names
+
+
+def _unique_param_ids(params):
+    """
+    Processes the params list to handle duplicate names within parameter sets,
+    ensuring unique IDs.
+
+    #### Parameters
+    **params** (`list`)
+    : List of parameters. Each entry is a list representing a set of parameters.
+
+    #### Returns
+    **params** (`list`)
+    : List of parameters with duplicate names within each set handled.
+    If there are duplicate names, they are renamed with a numerical suffix to
+    ensure unique IDs.
+    """
+
+    params = [[_repr_no_address(item) for item in entry] for entry in params]
+    for i, param in enumerate(params):
+        if len(param) != len(set(param)):
+            counter = Counter(param)
+            dupe_dict = {name: 0 for name, count in counter.items() if count > 1}
+            for j in range(len(param)):
+                name = param[j]
+                if name in dupe_dict:
+                    param[j] = f"{name} ({dupe_dict[name]})"
+                    dupe_dict[name] += 1
+            params[i] = param
+    return params
+
+
 class Benchmark:
     """
     Class representing a single benchmark. The class encapsulates
@@ -409,6 +482,10 @@ class Benchmark:
         **params** (`list`)
         : The list of parameters with unique representations for exporting.
 
+        **_skip_tuples** (`list`)
+        : List of tuples representing parameter combinations to be skipped
+        before calling the setup method.
+
         #### Raises
         **ValueError**
         : If `param_names` or `_params` is not a list or if the number of
@@ -437,44 +514,22 @@ class Benchmark:
         self.param_names = _get_first_attr(attr_sources, "param_names", [])
         self._current_params = ()
 
-        # Enforce params format
-        try:
-            self.param_names = [str(x) for x in list(self.param_names)]
-        except ValueError:
-            raise ValueError(f"{name}.param_names is not a list of strings")
+        self._params, self.param_names = _validate_params(
+            self._params, self.param_names, self.name
+        )
 
-        try:
-            self._params = list(self._params)
-        except ValueError:
-            raise ValueError(f"{name}.params is not a list")
+        # Fetch skip parameters
+        skip_dict = _get_first_attr(attr_sources, "skip_params", {})
 
-        if self._params and not isinstance(self._params[0], (tuple, list)):
-            # Accept a single list for one parameter only
-            self._params = [self._params]
-        else:
-            self._params = [list(entry) for entry in self._params]
-
-        if len(self.param_names) != len(self._params):
-            self.param_names = self.param_names[: len(self._params)]
-            self.param_names += [
-                "param%d" % (k + 1,)
-                for k in range(len(self.param_names), len(self._params))
-            ]
+        # Create list of tuples of parameter combinations to be skipped
+        self._skip_tuples = [
+            (value, key)
+            for key, values in skip_dict.items()
+            for value in (values if isinstance(values, list) else [values])
+        ]
 
         # Exported parameter representations
-        self.params = [
-            [_repr_no_address(item) for item in entry] for entry in self._params
-        ]
-        for i, param in enumerate(self.params):
-            if len(param) != len(set(param)):
-                counter = Counter(param)
-                dupe_dict = {name: 0 for name, count in counter.items() if count > 1}
-                for j in range(len(param)):
-                    name = param[j]
-                    if name in dupe_dict:
-                        param[j] = f"{name} ({dupe_dict[name]})"
-                        dupe_dict[name] += 1
-                self.params[i] = param
+        self.params = _unique_param_ids(self._params)
 
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.name}>"
@@ -574,6 +629,9 @@ class Benchmark:
         return ok
 
     def do_setup(self):
+        if tuple(self._current_params) in self._skip_tuples:
+            # Skip
+            return True
         try:
             for setup in self._setups:
                 setup(*self._current_params)
@@ -591,6 +649,9 @@ class Benchmark:
         self.do_setup()
 
     def do_teardown(self):
+        if tuple(self._current_params) in self._skip_tuples:
+            # Skip
+            return
         for teardown in self._teardowns:
             teardown(*self._current_params)
 
@@ -599,6 +660,9 @@ class Benchmark:
             return self._setup_cache()
 
     def do_run(self):
+        if tuple(self._current_params) in self._skip_tuples:
+            # Skip
+            return
         return self.run(*self._current_params)
 
     def do_profile(self, filename=None):
@@ -623,6 +687,9 @@ class Benchmark:
         raised. If a `filename` is provided, the profiling results will be saved
         to that file.
         """
+        if tuple(self._current_params) in self._skip_tuples:
+            # Skip
+            return
 
         def method_caller():
             run(*params)  # noqa:F821 undefined name
