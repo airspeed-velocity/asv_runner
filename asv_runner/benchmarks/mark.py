@@ -93,4 +93,39 @@ def skip_benchmark_if(condition):
     return decorator
 
 
-__all__ = ["skip_for_params", "skip_benchmark", "skip_benchmark_if"]
+def skip_params_if(skip_params_list, condition):
+    """
+    Decorator to set skip parameters for a benchmark function if a condition is met.
+
+    #### Parameters
+    **skip_params_list** (`list`):
+    A list specifying the skip parameters for the benchmark function.
+
+    **condition** (`bool`)
+    : A boolean that indicates whether to set the skip parameters. If `True`,
+      the skip parameters will be set for the decorated function. If `False`,
+      no parameters will be skipped.
+
+    #### Returns
+    **decorator** (function):
+    A decorator function that sets the skip parameters for the benchmark function
+      if the condition is met.
+
+    #### Notes
+    The `skip_params_if` decorator can be used to specify skip parameters for a
+      benchmark function if a condition is met.
+    """
+
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+
+        if condition:
+            setattr(wrapper, "skip_params", skip_params_list)
+        return wrapper
+
+    return decorator
+
+
+__all__ = ["skip_for_params", "skip_benchmark", "skip_benchmark_if", "skip_params_if"]
