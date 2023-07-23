@@ -128,4 +128,40 @@ def skip_params_if(skip_params_list, condition):
     return decorator
 
 
-__all__ = ["skip_for_params", "skip_benchmark", "skip_benchmark_if", "skip_params_if"]
+def parameterize_with(params, param_names):
+    """
+    Decorator to set benchmark parameters for a function.
+
+    #### Parameters
+    **params** (`list`):
+    A list specifying the parameters for the benchmark function.
+
+    **param_names** (`list`)
+    : A list specifying the names of the parameters. The length of `param_names`
+      should match the length of `params`.
+
+    #### Returns
+    **decorator** (function):
+    A decorator function that sets the parameters for the benchmark function.
+
+    #### Notes
+    The `parameterize_with` decorator can be used to specify parameters for a
+    benchmark function. The parameters are defined as a list of values and the
+    corresponding parameter names are defined as a list of strings. The decorated
+    function's `params` and `param_names` attributes will be set with the provided
+    parameters and names, which will be used during the benchmarking process.
+    """
+
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+
+        setattr(wrapper, "params", params)
+        setattr(wrapper, "param_names", param_names)
+        return wrapper
+
+    return decorator
+
+
+__all__ = ["skip_for_params", "skip_benchmark", "skip_benchmark_if", "skip_params_if", "parameterize_with"]
