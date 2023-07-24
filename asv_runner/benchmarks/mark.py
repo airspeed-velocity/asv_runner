@@ -1,4 +1,5 @@
 import functools
+import inspect
 
 
 def skip_for_params(skip_params_list):
@@ -128,40 +129,34 @@ def skip_params_if(skip_params_list, condition):
     return decorator
 
 
-def parameterize_with(params, param_names):
+def parameterize_class_with(param_dict):
     """
-    Decorator to set benchmark parameters for a function.
+    Class Decorator to set benchmark parameters for a class.
 
     #### Parameters
-    **params** (`list`):
-    A list specifying the parameters for the benchmark function.
-
-    **param_names** (`list`)
-    : A list specifying the names of the parameters. The length of `param_names`
-      should match the length of `params`.
+    **param_dict** (`dict`):
+    A dictionary specifying the parameters for the benchmark class.
+    The keys represent the parameter names, and the values are lists
+    of values for those parameters.
 
     #### Returns
     **decorator** (function):
-    A decorator function that sets the parameters for the benchmark function.
+    A class decorator that sets the parameters for the benchmark functions.
 
     #### Notes
-    The `parameterize_with` decorator can be used to specify parameters for a
-    benchmark function. The parameters are defined as a list of values and the
-    corresponding parameter names are defined as a list of strings. The decorated
-    function's `params` and `param_names` attributes will be set with the provided
+    The `parameterize_class_with` decorator can be used to specify parameters for a
+    benchmark class. The parameters are defined as a dictionary, where keys are
+    the parameter names and values are lists of respective values. The decorated
+    class's `params` and `param_names` attributes will be set with the provided
     parameters and names, which will be used during the benchmarking process.
     """
-
-    def decorator(func):
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            return func(*args, **kwargs)
-
-        setattr(wrapper, "params", params)
-        setattr(wrapper, "param_names", param_names)
-        return wrapper
-
+    def decorator(cls):
+        if not inspect.isclass(cls):
+            raise TypeError("The parameterize_class_with decorator can only be used with classes")
+        cls.params = list(zip(*param_dict.values()))
+        cls.param_names = list(param_dict.keys())
+        return cls
     return decorator
 
 
-__all__ = ["skip_for_params", "skip_benchmark", "skip_benchmark_if", "skip_params_if", "parameterize_with"]
+__all__ = ["skip_for_params", "skip_benchmark", "skip_benchmark_if", "skip_params_if", "parameterize_class_with"]
