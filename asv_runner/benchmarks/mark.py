@@ -421,10 +421,10 @@ def timeout_at(seconds):
 
 
 __all__ = [
-    "skip_for_params",
+    "parameterize",
     "skip_benchmark",
     "skip_benchmark_if",
+    "skip_for_params",
     "skip_params_if",
-    "parameterize",
     "timeout_at",
 ]
