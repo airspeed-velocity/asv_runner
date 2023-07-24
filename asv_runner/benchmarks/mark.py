@@ -152,9 +152,12 @@ def parameterize_class_with(param_dict):
     This decorator will overwrite any existing `params` and `param_names`
     attributes in the class.
     """
+
     def decorator(cls):
         if not inspect.isclass(cls):
-            raise TypeError("The parameterize_class_with decorator can only be used with classes")
+            raise TypeError(
+                "The parameterize_class_with decorator can only be used with classes"
+            )
         # Handle the single parameter case separately.
         if len(param_dict) > 1:
             cls.params = list(param_dict.values())
@@ -162,6 +165,7 @@ def parameterize_class_with(param_dict):
             cls.params = list(param_dict.values())[0]
         cls.param_names = list(param_dict.keys())
         return cls
+
     return decorator
 
 
@@ -188,16 +192,62 @@ def parameterize_func_with(param_dict):
     This decorator will overwrite any existing `params` and `param_names`
     attributes in the function, and it should not be used with methods of a class.
     """
+
     def decorator(func):
         if inspect.isclass(func) or inspect.ismethod(func):
-            raise TypeError("The parameterize_func_with decorator can only be used with functions")
+            raise TypeError(
+                "The parameterize_func_with decorator can only be used with functions"
+            )
         if len(param_dict) > 1:
             func.params = list(param_dict.values())
         else:
             func.params = list(param_dict.values())[0]
         func.param_names = list(param_dict.keys())
         return func
+
     return decorator
 
 
-__all__ = ["skip_for_params", "skip_benchmark", "skip_benchmark_if", "skip_params_if", "parameterize_class_with", "parameterize_func_with"]
+def parameterize(param_dict):
+    """
+    Decorator to set benchmark parameters for a function or a class.
+
+    #### Parameters
+    **param_dict** (`dict`):
+    A dictionary specifying the parameters for the benchmark.
+    The keys represent the parameter names, and the values are lists
+    of values for those parameters.
+
+    #### Returns
+    **decorator** (function):
+    A function or class decorator that sets the parameters for the benchmark.
+
+    #### Notes
+    The `parameterize` decorator can be used to specify parameters for a
+    benchmark function or class. The parameters are defined as a dictionary,
+    where keys are the parameter names and values are lists of respective values.
+    The decorated function or class's `params` and `param_names` attributes
+    will be set with the provided parameters and names, which will be used
+    during the benchmarking process.
+    """
+
+    def decorator(obj):
+        if inspect.isclass(obj):
+            return parameterize_class_with(param_dict)(obj)
+        elif callable(obj):
+            return parameterize_func_with(param_dict)(obj)
+        else:
+            raise TypeError(
+                "The parameterize decorator can only be used with functions or classes"
+            )
+
+    return decorator
+
+
+__all__ = [
+    "skip_for_params",
+    "skip_benchmark",
+    "skip_benchmark_if",
+    "skip_params_if",
+    "parameterize",
+]
