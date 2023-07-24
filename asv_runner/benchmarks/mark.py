@@ -244,10 +244,54 @@ def parameterize(param_dict):
     return decorator
 
 
+def timeout_class_at(seconds):
+    def decorator(cls):
+        if not inspect.isclass(cls):
+            raise TypeError(
+                "The timeout_class_with decorator can only be used with classes"
+            )
+        cls.timeout = seconds
+        return cls
+
+    return decorator
+
+
+def timeout_func_at(seconds):
+    def decorator(func):
+        if inspect.isclass(func):
+            raise TypeError(
+                "The timeout_func_with decorator can only be used with functions"
+            )
+
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+
+        setattr(wrapper, "timeout", seconds)
+        return wrapper
+
+    return decorator
+
+
+def timeout_at(seconds):
+    def decorator(obj):
+        if inspect.isclass(obj):
+            return timeout_class_at(seconds)(obj)
+        elif callable(obj):
+            return timeout_func_at(seconds)(obj)
+        else:
+            raise TypeError(
+                "The parameterize decorator can only be used with functions or classes"
+            )
+
+    return decorator
+
+
 __all__ = [
     "skip_for_params",
     "skip_benchmark",
     "skip_benchmark_if",
     "skip_params_if",
     "parameterize",
+    "timeout_at",
 ]
