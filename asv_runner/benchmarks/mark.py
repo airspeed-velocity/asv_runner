@@ -153,10 +153,13 @@ def parameterize_class_with(param_dict):
     def decorator(cls):
         if not inspect.isclass(cls):
             raise TypeError("The parameterize_class_with decorator can only be used with classes")
-        cls.params = list(zip(*param_dict.values()))
+        # Handle the single parameter case separately.
+        if len(param_dict) > 1:
+            cls.params = list(zip(*param_dict.values()))
+        else:
+            cls.params = list(param_dict.values())[0]
         cls.param_names = list(param_dict.keys())
         return cls
     return decorator
-
 
 __all__ = ["skip_for_params", "skip_benchmark", "skip_benchmark_if", "skip_params_if", "parameterize_class_with"]
