@@ -62,21 +62,41 @@ def skip_for_params(skip_params_list):
     Decorator to set skip parameters for a benchmark function.
 
     #### Parameters
-    **skip_params_dict** (`dict`):
-    A dictionary specifying the skip parameters for the benchmark function.
-    The keys represent the parameter names, and the values can be a single value
-    or a list of values.
+    **skip_params_list** (`list`):
+    A list of tuples, each specifying a combination of parameter values that
+    should cause the benchmark function to be skipped.
 
     #### Returns
     **decorator** (`function`):
-    A decorator function that sets the skip parameters for the benchmark function.
+    A decorator function that sets the skip parameters for the benchmark
+    function.
 
     #### Notes
-    The `skip_benchmark_for_params` decorator can be used to specify skip parameters
-    for a benchmark function. The skip parameters define combinations of values that
-    should be skipped when running the benchmark. The decorated function's `skip_params`
-    attribute will be set with the provided skip parameters, which will be used during
-    the benchmarking process.
+    The `skip_for_params` decorator can be used to specify conditions under
+    which a benchmark function should be skipped. Each tuple in the list
+    represents a combination of parameter values which, if received by the
+    benchmark function, will cause that function to be skipped during the
+    benchmarking process.
+
+    The decorated function's `skip_params` attribute will be set with the
+    provided skip parameters, which will be used during the benchmarking
+    process.
+
+    Using this decorator is always more efficient than raising a
+    `SkipNotImplemented` exception within the benchmark function, as the
+    function setup and execution can be avoided entirely for skipped parameters.
+
+    #### Example
+    ```{code-block} python
+    class Simple:
+        params = ([False, True])
+        param_names = ["ok"]
+
+        @skip_for_params([(False, )])
+        def time_failure(self, ok):
+            if ok:
+                x = 34.2**4.2
+    ```
     """
 
     def decorator(func):
@@ -133,8 +153,9 @@ def skip_benchmark_if(condition):
       will be skipped for benchmarking.
 
     #### Notes
-    The `skip_if` decorator can be used to skip the benchmarking of a specific function
-    if a condition is met.
+    The `skip_if` decorator can be used to skip the benchmarking of a specific
+    function if a condition is met. It is faster than raising
+    `SkipNotImplemented` as it skips the `setup()` as well.
     """
 
     def decorator(func):
