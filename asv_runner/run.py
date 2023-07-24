@@ -3,6 +3,7 @@ import math
 import pickle
 
 from ._aux import set_cpu_affinity_from_params
+from .benchmarks.mark import SkipNotImplemented
 from .discovery import get_benchmark_from_name
 
 
@@ -67,9 +68,13 @@ def _run(args):
         if skip:
             result = math.nan
         else:
-            result = benchmark.do_run()
-            if profile_path is not None:
-                benchmark.do_profile(profile_path)
+            try:
+                result = benchmark.do_run()
+                if profile_path is not None:
+                    benchmark.do_profile(profile_path)
+            except SkipNotImplemented:
+                # Still runs setup() though
+                result = math.nan
     finally:
         benchmark.do_teardown()
 

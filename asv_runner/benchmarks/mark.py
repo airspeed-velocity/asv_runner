@@ -2,6 +2,61 @@ import functools
 import inspect
 
 
+class SkipNotImplemented(NotImplementedError):
+    """
+    Exception raised to indicate a skipped benchmark.
+
+    This exception inherits from `NotImplementedError`. It's used within an ASV
+    benchmark to skip the current benchmark for certain parameters or conditions
+    that are not implemented or do not apply.
+
+    #### Attributes
+    **message** (`str`)
+    : A string that provides a more detailed explanation of the skip reason.
+
+    #### Warning
+    Use of `SkipNotImplemented` is less efficient than the `@skip_for_params`
+    decorator as the setup for the benchmarks and the benchmarks themselves are
+    run before the error is raised, thus consuming unnecessary resources. Use
+    `@skip_for_params` where possible to avoid running the benchmarks that
+    should be skipped.
+
+    #### Notes
+    This is mainly provided for backwards compatibility with the behavior of asv
+    before 0.5 wherein individual benchmarks could raise and be skipped. From
+    0.5 onwards, only the setup function is meant to raise `NotImplemented` for
+    skipping parameter sets.
+
+    #### Example
+    This exception might be used in a scenario where a benchmark should be
+    skipped for certain conditions or parameters:
+
+    ```{code-block} python
+    class Simple:
+        params = ([False, True])
+        param_names = ["ok"]
+
+        def time_failure(self, ok):
+            if ok:
+                x = 34.2**4.2
+            else:
+                raise SkipNotImplemented
+    ```
+    """
+
+    def __init__(self, message=""):
+        """
+        Initialize a new instance of `SkipNotImplemented`.
+
+        #### Parameters
+        **message** (`str`)
+        : A string that provides a more detailed explanation of the skip reason.
+          Optional; if not provided, defaults to an empty string.
+        """
+        self.message = message
+        super().__init__(self.message)
+
+
 def skip_for_params(skip_params_list):
     """
     Decorator to set skip parameters for a benchmark function.
