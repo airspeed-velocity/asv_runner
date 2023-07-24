@@ -245,6 +245,24 @@ def parameterize(param_dict):
 
 
 def timeout_class_at(seconds):
+    """
+    Class Decorator to set timeout for a class.
+
+    #### Parameters
+    **seconds** (`float`)
+    : The number of seconds after which the class methods should be timed out.
+
+    #### Returns
+    **decorator** (function)
+    : A class decorator that sets the timeout for the class.
+
+    #### Notes
+    The `timeout_class_at` decorator can be used to specify a timeout for all
+    methods in a class. The timeout is stored as an attribute on the class and
+    applies to all its methods. Individual methods can override this timeout by
+    using the `timeout_func_at` or `timeout_at` decorators.
+    """
+
     def decorator(cls):
         if not inspect.isclass(cls):
             raise TypeError(
@@ -257,6 +275,24 @@ def timeout_class_at(seconds):
 
 
 def timeout_func_at(seconds):
+    """
+    Function Decorator to set timeout for a function.
+
+    #### Parameters
+    **seconds** (`float`)
+    : The number of seconds after which the function should be timed out.
+
+    #### Returns
+    **decorator** (function)
+    : A function decorator that sets the timeout for the function.
+
+    #### Notes
+    The `timeout_func_at` decorator can be used to specify a timeout for a
+    specific function. This is particularly useful for benchmarking, where you
+    might want to stop execution of functions that take too long. The timeout is
+    stored as an attribute on the function.
+    """
+
     def decorator(func):
         if inspect.isclass(func):
             raise TypeError(
@@ -274,6 +310,27 @@ def timeout_func_at(seconds):
 
 
 def timeout_at(seconds):
+    """
+    Decorator to set a timeout for a function or a class.
+
+    #### Parameters
+    **seconds** (`float`)
+    : The number of seconds after which the function or the class methods should
+    be timed out.
+
+    #### Returns
+    **decorator** (function)
+    : A decorator that sets the timeout for the function or the class.
+
+    #### Notes
+    The `timeout_at` decorator can be used to set a specific timeout for a
+    function or all methods in a class. If applied to a class, the timeout is
+    stored as an attribute on the class and applies to all its methods.
+    Individual methods can override this timeout by using the `timeout_func_at`
+    or `timeout_at` decorators. If applied to a function, the timeout is stored
+    directly on the function.
+    """
+
     def decorator(obj):
         if inspect.isclass(obj):
             return timeout_class_at(seconds)(obj)
