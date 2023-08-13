@@ -1,13 +1,7 @@
 name: Trigger asv
 on:
-  workflow_call:
-    inputs:
-      pr-number:
-        required: true
-        type: number
-    secrets:
-      asv_tok:
-        required: true
+  repository_dispatch:
+    types: [trigger-asv-command]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -27,17 +21,12 @@ jobs:
         with:
           submodules: "recursive"
           fetch-depth: 0
-      - run: |
-          gh workflow run workflow.yml -R airspeed-velocity/asv --json '{"pr_number": "$PR_NUM"}'
-        env:
-          GH_TOKEN: ${{ secrets.asv_tok }}
-          PR_NUM: ${{ inputs.pr-number }}
-      # - uses: convictional/trigger-workflow-and-wait@v1.6.5
-      #   with:
-      #     owner: airspeed-velocity
-      #     repo: asv
-      #     github_token: ${{ secrets.asv_tok }}
-      #     workflow_file_name: triggered.yml
-      #     ref: master
-      #     wait_workflow: true
-      #     client_payload: '{"pr_number": "${{ inputs.pr-number }}"}'
+      - uses: convictional/trigger-workflow-and-wait@v1.6.5
+        with:
+          owner: airspeed-velocity
+          repo: asv
+          github_token: ${{ secrets.ASV_TOK }}
+          workflow_file_name: triggered.yml
+          ref: master
+          wait_workflow: true
+          client_payload: '{"pr_number": "${{ github.event.pull_request.number }}"}'
