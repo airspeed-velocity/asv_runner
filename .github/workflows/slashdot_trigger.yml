@@ -13,4 +13,4 @@ jobs:
           commands: |
             trigger-asv
           static-args: |
-            pr_number=${{ github.event.number }}
+            pr_number=${{ github.event.issue.number }}
