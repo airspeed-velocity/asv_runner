@@ -30,4 +30,3 @@ jobs:
           ref: master
           wait_workflow: true
           client_payload: '{"pr_number": "${{ github.event.client_payload.slash_command.args.named.pr_number }}"}'
-
