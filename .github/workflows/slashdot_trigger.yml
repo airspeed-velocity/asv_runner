@@ -12,4 +12,5 @@ jobs:
           token: ${{ secrets.ASV_TOK }}
           commands: |
             trigger-asv
-          client-payload: '{"pr_number": "${{ github.event.pull_request.number }}"}'
+          static-args: |
+            pr_number=${{ github.event.number }}
