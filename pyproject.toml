@@ -16,7 +16,7 @@ classifiers = [
   'License :: OSI Approved :: BSD License',
   'Topic :: System :: Benchmark',
 ]
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [] # Make sure there's nothing here
 requires-python = ">=3.8"
 readme = "README.md"
