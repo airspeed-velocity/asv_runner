@@ -153,6 +153,10 @@ class TimeBenchmark(Benchmark):
                 min_repeat = self.repeat
                 max_repeat = self.repeat
                 max_time = self.timeout
+                # XXX: This is a bug, needed for --quick
+                # gh-1308 in asv
+                if max_time is None:
+                    max_time = 60.0
 
         min_repeat = int(min_repeat)
         max_repeat = int(max_repeat)
