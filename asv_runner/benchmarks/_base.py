@@ -322,11 +322,13 @@ def _repr_no_address(obj):
     """
     result = repr(obj)
     address_regex = re.compile(r"^(<.*) at (0x[\da-fA-F]*)(>)$")
-    if match := address_regex.match(result):
+    match = address_regex.match(result)
+    if match:
         suspected_address = match[2]
         # Double check this is the actual address
         default_result = object.__repr__(obj)
-        if match2 := address_regex.match(default_result):
+        match2 = address_regex.match(default_result)
+        if match2:
             known_address = match2[2]
             if known_address == suspected_address:
                 result = match[1] + match[3]
