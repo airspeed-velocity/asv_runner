@@ -244,6 +244,7 @@ class Log:
         self._logger = logging.getLogger()
         self._needs_newline = False
         self._last_dot = time.time()
+        self._colorama = False
         if sys.platform in {"win32", "cli"}:
             try:
                 import colorama
@@ -251,7 +252,7 @@ class Log:
                 colorama.init()
                 self._colorama = True
             except Exception as exc:
-                print(f"On Windows, colorama is suggested, but got {exc}")
+                print(f"On Windows or cli, colorama is suggested, but got {exc}")
 
     def _stream_formatter(self, record):
         """
