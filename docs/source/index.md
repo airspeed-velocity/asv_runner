@@ -23,6 +23,7 @@ measure and analyze the performance of your Python packages.
 :caption: Contents
 
 apidocs/index
+bplugin-list
 ```
 
 ## Indices and tables
