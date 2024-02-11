@@ -11,26 +11,33 @@ maintainers = [
     { name = "Rohit Goswami", email = "rog32@hi.is" },
 ]
 classifiers = [
-  'Development Status :: 4 - Beta',
-  'Programming Language :: Python',
-  'License :: OSI Approved :: BSD License',
-  'Topic :: System :: Benchmark',
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "License :: OSI Approved :: BSD License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: System :: Benchmark",
 ]
 version = "0.1.0"
-dependencies = [] # Make sure there's nothing here
+dependencies = [] # Make sure there"s nothing here
 requires-python = ">=3.8"
 readme = "README.md"
 license = {text = "BSD-3-Clause"}
 
 [project.optional-dependencies]
 docs = [
-    'furo',
-    'sphinx',
-    'sphinx-contributors',
-    'sphinx-copybutton',
-    'sphinx-design',
-    'sphinx-autobuild',
-    'sphinxcontrib-spelling',
+    "furo",
+    "sphinx",
+    "sphinx-contributors",
+    "sphinx-copybutton",
+    "sphinx-design",
+    "sphinx-autobuild",
+    "sphinxcontrib-spelling",
     "myst-parser>=2",
     "sphinx-autodoc2>=0.4.2",
 ]
@@ -45,7 +52,7 @@ build-backend = "pdm.backend"
 [tool.ruff]
 line-length = 88
 extend-ignore = [
-    "E741", # Do not use variables named 'I', 'O', or 'l'
+    "E741", # Do not use variables named "I", "O", or "l"
 ]
 select = [
   "E",   # pycodestyle
