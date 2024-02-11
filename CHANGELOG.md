@@ -8,6 +8,12 @@ This project uses [*towncrier*](https://towncrier.readthedocs.io/) and the chang
 
 <!-- towncrier release notes start -->
 
+## [0.2.1](https://github.com/airspeed-velocity/asv_runner/tree/0.2.1) - 11-02-2024
+
+
+No significant changes.
+
+
 ## [0.2.0](https://github.com/airspeed-velocity/asv_runner/tree/0.2.0) - 11-02-2024
 
 
