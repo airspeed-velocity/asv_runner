@@ -18,7 +18,7 @@ classifiers = [
 ]
 version = "0.1.0"
 dependencies = [] # Make sure there's nothing here
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 readme = "README.md"
 license = {text = "BSD-3-Clause"}
 
@@ -31,13 +31,12 @@ docs = [
     'sphinx-design',
     'sphinx-autobuild',
     'sphinxcontrib-spelling',
-    "myst-parser>=2", # Needs python >= 3.8
-    "sphinx-autodoc2>=0.4.2", # Needs python >= 3.8
+    "myst-parser>=2",
+    "sphinx-autodoc2>=0.4.2",
 ]
 [tool.pdm.dev-dependencies]
 lint = [
     "ruff",
-    "black",
 ]
 [build-system]
 requires = ["pdm-backend"]
@@ -55,15 +54,11 @@ select = [
   "I001", # isort
 ]
 
-[tool.black]
-line-length = 88
-target-version = ['py37']
-
 [tool.setuptools_scm]
 write_to = "asv_runner/_version.py"
 
 [tool.pdm.scripts]
-lint = {composite = ["ruff --fix asv_runner/", "black asv_runner/"]}
+lint = {composite = ["ruff --fix --unsafe-fixes asv_runner/", "ruff format asv_runner/"]}
 mkdoc = {composite = ["sphinx-build -b html docs/source docs/build/html"]}
 
 [project.urls]
