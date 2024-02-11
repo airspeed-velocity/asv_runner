@@ -8,6 +8,23 @@ This project uses [*towncrier*](https://towncrier.readthedocs.io/) and the chang
 
 <!-- towncrier release notes start -->
 
+## [0.1.0](https://github.com/airspeed-velocity/asv_runner/tree/0.1.0) - 11-09-2023
+
+
+### Bug Fixes
+
+- Default `max_time` is set to `60.0` seconds to fix `--quick`.
+  ([#29](https://github.com/airspeed-velocity/asv_runner/issues/29))
+- `asv` will not try to access a missing `colorama` attribute.
+  ([#32](https://github.com/airspeed-velocity/asv_runner/issues/32))
+
+### Other Changes and Additions
+
+- `pip-tools` and `pip-compile` are used to pin transitive dependencies for
+  read the docs.
+  ([#31](https://github.com/airspeed-velocity/asv_runner/issues/31))
+
+
 ## [0.0.9](https://github.com/airspeed-velocity/asv_runner/tree/0.0.9) - 20-08-2023
 
 
