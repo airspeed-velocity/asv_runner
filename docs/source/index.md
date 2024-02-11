@@ -24,6 +24,7 @@ measure and analyze the performance of your Python packages.
 
 apidocs/index
 bplugin-list
+CHANGELOG
 ```
 
 ## Indices and tables
