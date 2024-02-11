@@ -1,0 +1,31 @@
+[tool.towncrier]
+package = "asv_runner"
+package_dir = "asv_runner"
+all_bullets = false
+wrap = true
+directory = "changelog.d"
+filename = "CHANGELOG.md"
+start_string = "<!-- towncrier release notes start -->\n"
+underlines = ["", "", ""]
+title_format = "## [{version}](https://github.com/airspeed-velocity/asv_runner/tree/{version}) - {project_date}"
+issue_format = "[#{issue}](https://github.com/airspeed-velocity/asv_runner/issues/{issue})"
+
+[[tool.towncrier.type]]
+directory = "feat"
+name = "New Features"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "api"
+name = "API Changes"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "bugfix"
+name = "Bug Fixes"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "misc"
+name = "Other Changes and Additions"
+showcontent = true

@@ -178,8 +178,7 @@ def recvall(sock, size):
         data += s
         if not s:
             raise RuntimeError(
-                "did not receive data from socket "
-                "(size {}, got only {!r})".format(size, data)
+                "did not receive data from socket " f"(size {size}, got only {data!r})"
             )
     return data
 

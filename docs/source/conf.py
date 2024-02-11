@@ -1,7 +1,5 @@
-# Configuration file for the Sphinx documentation builder.
-#
-# For the full list of built-in configuration values, see the documentation:
-# https://www.sphinx-doc.org/en/master/usage/configuration.html
+import os
+import shutil
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -56,3 +54,11 @@ html_theme_options = {
     "source_branch": "main",
     "source_directory": "docs/",
 }
+
+
+# ------------- Copying things
+docs_source_dir = os.path.abspath(os.path.dirname(__file__))
+project_root_dir = os.path.abspath(os.path.join(docs_source_dir, "..", ".."))
+changelog_src = os.path.join(project_root_dir, "CHANGELOG.md")
+changelog_dest = os.path.join(docs_source_dir, "CHANGELOG.md")
+shutil.copyfile(changelog_src, changelog_dest)
