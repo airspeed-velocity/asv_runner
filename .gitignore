@@ -164,3 +164,4 @@ cython_debug/
 .pdm-python
 /docs/source/CHANGELOG.md
 /docs/html/
+/asv_runner/_version.py
