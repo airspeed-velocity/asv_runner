@@ -45,10 +45,10 @@ build-backend = "pdm.backend"
 
 [tool.ruff]
 line-length = 88
-extend-ignore = [
+lint.extend-ignore = [
     "E741", # Do not use variables named 'I', 'O', or 'l'
 ]
-select = [
+lint.select = [
   "E",   # pycodestyle
   "F",   # pyflakes
   "UP",  # pyupgrade
