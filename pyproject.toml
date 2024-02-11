@@ -1,5 +1,3 @@
-[tool.pdm]
-
 [project]
 name = "asv_runner"
 description = "Core Python benchmark code for ASV"
@@ -16,6 +14,7 @@ classifiers = [
   "License :: OSI Approved :: BSD License",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.7",
   "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
@@ -24,7 +23,7 @@ classifiers = [
   "Topic :: System :: Benchmark",
 ]
 dependencies = [] # Make sure there"s nothing here
-requires-python = ">=3.8"
+requires-python = ">=3.7"
 readme = "README.md"
 license = {text = "BSD-3-Clause"}
 dynamic = ["version"]
@@ -38,12 +37,8 @@ docs = [
     "sphinx-design",
     "sphinx-autobuild",
     "sphinxcontrib-spelling",
-    "myst-parser>=2",
-    "sphinx-autodoc2>=0.4.2",
-]
-[tool.pdm.dev-dependencies]
-lint = [
-    "ruff",
+    "myst-parser>=2", # Needs py38
+    "sphinx-autodoc2>=0.4.2", # Needs py38
 ]
 [build-system]
 requires = ["pdm-backend"]
@@ -59,6 +54,14 @@ select = [
   "F",   # pyflakes
   "UP",  # pyupgrade
   "I001", # isort
+]
+
+[tool.pdm]
+[tool.pdm.dev-dependencies]
+base = [
+    "towncrier>=23.6.0",
+    "tbump>=6.11.0",
+    "ruff>=0.2.1",
 ]
 
 [tool.pdm.scripts]
