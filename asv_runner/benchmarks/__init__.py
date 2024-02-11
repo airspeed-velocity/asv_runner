@@ -35,8 +35,10 @@ adding a new submodule with an "export_as_benchmark" attribute.
 
 import importlib
 import pkgutil
-from importlib_metadata import distributions # py37 doesn't have importlib.metada
 from pathlib import Path
+
+# py37 doesn't have importlib.metadata
+from importlib_metadata import distributions
 
 from ._exceptions import NotRequired
 
