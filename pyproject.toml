@@ -23,11 +23,11 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Topic :: System :: Benchmark",
 ]
-version = "0.1.0"
 dependencies = [] # Make sure there"s nothing here
 requires-python = ">=3.8"
 readme = "README.md"
 license = {text = "BSD-3-Clause"}
+dynamic = ["version"]
 
 [project.optional-dependencies]
 docs = [
@@ -61,12 +61,14 @@ select = [
   "I001", # isort
 ]
 
-[tool.setuptools_scm]
-write_to = "asv_runner/_version.py"
-
 [tool.pdm.scripts]
 lint = {composite = ["ruff --fix --unsafe-fixes asv_runner/", "ruff format asv_runner/"]}
 mkdoc = {composite = ["sphinx-build -b html docs/source docs/build/html"]}
+
+[tool.pdm.version]
+source = "scm"
+write_to = "asv_runner/_version.py"
+write_template = "__version__ = '{}'"
 
 [project.urls]
 homepage = "https://asv.readthedocs.io/projects/asv-runner/en/latest/"
