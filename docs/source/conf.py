@@ -5,9 +5,9 @@ import shutil
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "asv_runner"
-copyright = "2023, asv Developers"
+copyright = "2023--present, asv Developers"
 author = "asv Developers"
-release = "0.1.0"
+release = "0.2.0"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

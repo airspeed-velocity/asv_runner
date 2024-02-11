@@ -70,7 +70,7 @@ mkdoc = {composite = ["sphinx-build -b html docs/source docs/build/html"]}
 
 [tool.pdm.version]
 source = "scm"
-write_to = "asv_runner/_version.py"
+write_to = "asv_runner/__init__.py"
 write_template = "__version__ = '{}'"
 
 [project.urls]

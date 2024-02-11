@@ -8,6 +8,20 @@ This project uses [*towncrier*](https://towncrier.readthedocs.io/) and the chang
 
 <!-- towncrier release notes start -->
 
+## [0.2.0](https://github.com/airspeed-velocity/asv_runner/tree/0.2.0) - 11-02-2024
+
+
+### Other Changes and Additions
+
+- `asv_runner` now uses `towncrier` to manage the changelog, also adds the
+  changeglog to the generated documentation.
+  ([#38](https://github.com/airspeed-velocity/asv_runner/issues/38))
+- The lowest supported version of `python` for building the `asv_runner`
+  documentation is now `3.8`, since `3.7` has been EOL for [many months
+now](https://endoflife.date/python).
+([#39](https://github.com/airspeed-velocity/asv_runner/issues/39))
+
+
 ## [0.1.0](https://github.com/airspeed-velocity/asv_runner/tree/0.1.0) - 11-09-2023
 
 

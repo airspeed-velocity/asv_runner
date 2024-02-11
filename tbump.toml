@@ -23,8 +23,6 @@ tag_template = "v{new_version}"
 # section containing the path of the file, relative to the
 # tbump.toml location.
 [[file]]
-src = "pyproject.toml"
-[[file]]
 src = "docs/source/conf.py"
 
 # You can specify a list of commands to
@@ -34,6 +32,10 @@ src = "docs/source/conf.py"
 [[before_commit]]
 name = "pre-commit"
 cmd = "pipx run pre-commit run -a"
+
+[[before_commit]]
+name = "generate-release-notes"
+cmd = 'towncrier build --version {new_version} --date "$(date -u +%d-%m-%Y)"'
 
 #  [[before_commit]]
 #  name = "check changelog"
