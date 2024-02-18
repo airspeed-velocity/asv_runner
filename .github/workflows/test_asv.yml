@@ -1,0 +1,46 @@
+name: test_asv
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test_asv:
+    name: test with specific asv_runner
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["ubuntu-latest"]
+        python-version: ["3.10", "pypy-3.9"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          path: asv_runner
+          fetch-depth: 0
+      - name: Checkout tools repo
+        uses: actions/checkout@v3
+        with:
+          repository: airspeed-velocity/asv
+          path: asv
+          fetch-depth: 0
+      - name: Set up Python version ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: asv_runner/pyproject.toml
+      - name: Install asv and depedencies
+        run: cd asv/ && python -m pip install ".[test,hg]"
+      - name: Install asv_runner
+        run: cd asv_runner/ && pip install .
+      - name: Run tests with the current asv_runner
+        run: |
+          cd asv/
+          ASV_RUNNER="$(pwd)/../asv_runner" python -m pytest -v --timeout=300 --durations=100 test
