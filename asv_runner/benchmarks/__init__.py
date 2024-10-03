@@ -49,9 +49,8 @@ submodule_names = [
     name for _, name, _ in pkgutil.iter_modules(pkgpath) if "_" not in name
 ]
 asv_modules = [
-    dist.metadata["Name"]
-    for dist in distributions()
-    if dist.metadata["Name"].startswith("asv_bench")
+    name for dist in distributions()
+    if isinstance(name := dist.metadata.get("Name", None), str) and name.startswith("asv_bench")
 ]
 benchmark_types = []
 
