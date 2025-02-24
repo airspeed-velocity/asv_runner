@@ -85,10 +85,12 @@ class _SeparateProcessTimer:
             """
         )
 
-        proc = subprocess.Popen([sys.executable, "-c", evaler],
-                                stdin=subprocess.PIPE,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
+        proc = subprocess.Popen(
+            [sys.executable, "-c", evaler],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
         stdout, stderr = proc.communicate(input=code.encode("utf-8"))
         if proc.returncode != 0:
             raise RuntimeError(f"Subprocess failed: {stderr.decode()}")
