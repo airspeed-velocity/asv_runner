@@ -136,7 +136,7 @@ class TimerawBenchmark(TimeBenchmark):
         if param:
 
             def func():
-                self.func(*param)
+                return self.func(*param)
 
         else:
             func = self.func
