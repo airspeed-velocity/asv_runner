@@ -75,8 +75,27 @@ class _SeparateProcessTimer:
 
         code = self.subprocess_tmpl.format(stmt=stmt, setup=setup, number=number)
 
-        res = subprocess.check_output([sys.executable, "-c", code])
-        return float(res.strip())
+        # NOTE: Pass the script to be executed via STDIN.
+        # See https://github.com/airspeed-velocity/asv_runner/issues/45
+        evaler = textwrap.dedent(
+            """
+            import sys
+            code = sys.stdin.read()
+            exec(code)
+            """
+        )
+
+        proc = subprocess.Popen(
+            [sys.executable, "-c", evaler],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        stdout, stderr = proc.communicate(input=code.encode("utf-8"))
+        if proc.returncode != 0:
+            raise RuntimeError(f"Subprocess failed: {stderr.decode()}")
+
+        return float(stdout.decode("utf-8").strip())
 
 
 class TimerawBenchmark(TimeBenchmark):
