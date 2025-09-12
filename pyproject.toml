@@ -23,7 +23,7 @@ classifiers = [
   "Topic :: System :: Benchmark",
 ]
 dependencies = [
-    "importlib-metadata", # This is OK, it was vendored from 3.8
+    "importlib-metadata; python_version < '3.8'",
 ] # Make sure there's nothing (or almost nothing) here
 requires-python = ">=3.7"
 readme = "README.md"

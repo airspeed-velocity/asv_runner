@@ -38,7 +38,10 @@ import pkgutil
 from pathlib import Path
 
 # py37 doesn't have importlib.metadata
-from importlib_metadata import distributions
+try:
+    from importlib.metadata import distributions
+except ImportError
+    from importlib_metadata import distributions
 
 from ._exceptions import NotRequired
 
