@@ -40,7 +40,7 @@ from pathlib import Path
 # py37 doesn't have importlib.metadata
 try:
     from importlib.metadata import distributions
-except ImportError
+except ImportError:
     from importlib_metadata import distributions
 
 from ._exceptions import NotRequired
