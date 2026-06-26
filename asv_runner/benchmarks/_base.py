@@ -254,7 +254,7 @@ def _get_sourceline_info(obj, basedir):
         fn = inspect.getsourcefile(obj)
         fn = os.path.relpath(fn, basedir)
         _, lineno = inspect.getsourcelines(obj)
-        return f" in {fn!s}:{lineno!s}"
+        return f" in {fn !s}:{lineno !s}"
     except Exception:
         return ""
 
@@ -300,8 +300,8 @@ def _check_num_args(root, benchmark_name, func, min_num_args, max_num_args=None)
         info = inspect.getfullargspec(func)
     except Exception as exc:
         print(
-            f"{benchmark_name!s}: failed to check "
-            f"({func!r}{_get_sourceline_info(func, root)!s}): {exc!s}"
+            f"{benchmark_name !s}: failed to check "
+            f"({func !r}{_get_sourceline_info(func, root) !s}): {exc !s}"
         )
         return True
 
@@ -322,9 +322,9 @@ def _check_num_args(root, benchmark_name, func, min_num_args, max_num_args=None)
         else:
             num_args_str = f"{min_num_args}-{max_num_args}"
         print(
-            f"{benchmark_name!s}: wrong number of arguments "
-            f"(for {func!r}{_get_sourceline_info(func, root)!s}):",
-            f"expected {num_args_str}, has {args_str}",
+            f"{benchmark_name !s}: wrong number of arguments "
+            f"(for {func !r}{_get_sourceline_info(func, root) !s}):",
+            f"expected {num_args_str}, " f"has {args_str}",
         )
 
     return ok
@@ -412,7 +412,9 @@ def _validate_params(params, param_names, name):
 
     if len(param_names) != len(params):
         param_names = param_names[: len(params)]
-        param_names += [f"param{k + 1}" for k in range(len(param_names), len(params))]
+        param_names += [
+            "param{}".format(k + 1) for k in range(len(param_names), len(params))
+        ]
 
     return params, param_names
 
@@ -708,7 +710,7 @@ class Benchmark:
                 setup(*self._build_params())
         except NotImplementedError as e:
             # allow skipping test
-            print(f"asv: skipped: {e!r} ")
+            print(f"asv: skipped: {e !r} ")
             return True
         return False
 
