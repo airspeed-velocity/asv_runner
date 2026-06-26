@@ -19,30 +19,21 @@ regex = '''
 message_template = "REL: Bump version to v{new_version}"
 tag_template = "v{new_version}"
 
-# For each file to patch, add a [[file]] config
-# section containing the path of the file, relative to the
-# tbump.toml location.
 [[file]]
 src = "docs/source/conf.py"
 
-# You can specify a list of commands to
-# run after the files have been patched
-# and before the git commit is made
-
+# Prefer prek (faster, same config via prek.toml / .pre-commit-config.yaml)
 [[before_commit]]
-name = "pre-commit"
-cmd = "pipx run pre-commit run -a"
+name = "prek"
+cmd = "prek run -a || uvx prek run -a || pipx run pre-commit run -a"
 
 [[before_commit]]
 name = "generate-release-notes"
 cmd = 'towncrier build --version {new_version} --date "$(date -u +%d-%m-%Y)"'
 
-#  [[before_commit]]
-#  name = "check changelog"
-#  cmd = "grep -q {new_version} Changelog.rst"
+[[before_commit]]
+name = "unit-tests"
+cmd = "PDM_BUILD_SCM_VERSION={new_version} python -m unittest discover -s tests -q"
 
-# Or run some commands after the git tag and the branch
-# have been pushed:
-#  [[after_push]]
-#  name = "publish"
-#  cmd = "./publish.sh"
+# After tag push, wheels are built and uploaded by .github/workflows/build_wheels.yml
+# (trusted publishing on tags v*). No extra after_push required.

@@ -9,11 +9,9 @@ if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
 from asv_runner.benchmarks.mark import benchmark  # noqa: E402
-from asv_runner.benchmarks.timeraw import (  # noqa: E402
-    TimerawBenchmark,
-    _normalize_timeraw_env,
-    _SeparateProcessTimer,
-)
+from asv_runner.benchmarks.timeraw import (TimerawBenchmark,  # noqa: E402
+                                           _normalize_timeraw_env,
+                                           _SeparateProcessTimer)
 
 
 class TestTimerawEnvDesign(unittest.TestCase):
@@ -46,7 +44,6 @@ class TestTimerawEnvDesign(unittest.TestCase):
         timer = _SeparateProcessTimer(lambda: "pass", env={"PATH": "override-path"})
         child = timer._child_environ()
         self.assertEqual(child["PATH"], "override-path")
-        # some other parent key still present when not overridden
         if "HOME" in os.environ:
             self.assertEqual(child["HOME"], os.environ["HOME"])
 
@@ -64,7 +61,6 @@ class TestTimerawEnvDesign(unittest.TestCase):
         self.assertIsInstance(elapsed, float)
 
     def test_timer_does_not_renormalize(self):
-        # Pre-normalized dict passed through; invalid would only fail at load.
         timer = _SeparateProcessTimer(lambda: "pass", env={"K": "v"})
         self.assertEqual(timer.env["K"], "v")
 
@@ -93,12 +89,10 @@ class TestTimerawEnvDesign(unittest.TestCase):
     def test_env_fingerprint_no_newline_or_equals_collision(self):
         from asv_runner.benchmarks.timeraw import _env_fingerprint
 
-        # Newline in a value must not alias a second key=value line.
         a = _env_fingerprint({"A": "1\nB=2"})
         b = _env_fingerprint({"A": "1", "B": "2"})
         self.assertNotEqual(a, b)
 
-        # '=' inside key or value must not alias a split mapping.
         c = _env_fingerprint({"A": "B=1"})
         d = _env_fingerprint({"A=B": "1"})
         self.assertNotEqual(c, d)

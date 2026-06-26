@@ -1,24 +1,24 @@
+# Prefer `prek run -a` (see prek.toml). This file mirrors hooks for legacy callers.
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
     -   id: trailing-whitespace
-        exclude: ^(test/example_results)
     -   id: end-of-file-fixer
-        exclude: ^(test/example_results/cheetah)
     -   id: check-yaml
+    -   id: check-toml
+    -   id: check-merge-conflict
     -   id: check-added-large-files
+        args: ["--maxkb=1000"]
+    -   id: check-case-conflict
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.9
+    hooks:
+    -   id: ruff
+        args: ["--fix"]
+    -   id: ruff-format
 -   repo: https://github.com/pycqa/isort
     rev: 5.13.2
     hooks:
     -   id: isort
         name: isort (python)
--   repo: https://github.com/psf/black
-    rev: 24.8.0
-    hooks:
-    -   id: black
--   repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.4
-    hooks:
-    -   id: ruff
-        args: ["--fix"]
