@@ -1,9 +1,7 @@
 # Regression tests for asv_runner#49 and airspeed-velocity/asv#1592.
 # Drive shipped Benchmark / mark APIs only (no re-implementation).
 
-from __future__ import print_function
 
-import inspect
 import os
 import sys
 import unittest

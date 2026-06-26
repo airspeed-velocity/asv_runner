@@ -1,5 +1,4 @@
 # asv_runner#43 hashing + asv_runner#33 timing scale regression.
-from __future__ import print_function
 
 import os
 import sys
@@ -51,8 +50,8 @@ class TestTimingScale(unittest.TestCase):
         # Each sample is total timeit time / number => ~delay seconds.
         median = sorted(samples)[len(samples) // 2]
         # Allow OS scheduling noise; fail if ~50% systematic (would be ~0.025).
-        self.assertGreater(median, delay * 0.7, msg="samples=%r" % (samples,))
-        self.assertLess(median, delay * 2.5, msg="samples=%r" % (samples,))
+        self.assertGreater(median, delay * 0.7, msg=f"samples={samples!r}")
+        self.assertLess(median, delay * 2.5, msg=f"samples={samples!r}")
 
 
 if __name__ == "__main__":

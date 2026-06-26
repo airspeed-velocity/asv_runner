@@ -1,5 +1,4 @@
 # Timeraw env design (asv#1471) + identity fingerprint.
-from __future__ import print_function
 
 import os
 import sys
@@ -12,8 +11,8 @@ if _ROOT not in sys.path:
 from asv_runner.benchmarks.mark import benchmark  # noqa: E402
 from asv_runner.benchmarks.timeraw import (  # noqa: E402
     TimerawBenchmark,
-    _SeparateProcessTimer,
     _normalize_timeraw_env,
+    _SeparateProcessTimer,
 )
 
 
@@ -121,13 +120,17 @@ class TestTimerawEnvDesign(unittest.TestCase):
             return "pass"
 
         timeraw_eq_val.env = {"A": "B=1"}
-        b_eq_val = TimerawBenchmark("m.timeraw_eq_val", timeraw_eq_val, [timeraw_eq_val])
+        b_eq_val = TimerawBenchmark(
+            "m.timeraw_eq_val", timeraw_eq_val, [timeraw_eq_val]
+        )
 
         def timeraw_eq_key():
             return "pass"
 
         timeraw_eq_key.env = {"A=B": "1"}
-        b_eq_key = TimerawBenchmark("m.timeraw_eq_key", timeraw_eq_key, [timeraw_eq_key])
+        b_eq_key = TimerawBenchmark(
+            "m.timeraw_eq_key", timeraw_eq_key, [timeraw_eq_key]
+        )
         self.assertNotEqual(b_eq_val.version, b_eq_key.version)
 
 

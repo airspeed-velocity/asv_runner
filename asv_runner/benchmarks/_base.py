@@ -1,14 +1,14 @@
 import cProfile as profile
 import inspect
+import io
 import itertools
 import math
 import os
 import re
 import textwrap
+import tokenize
 from collections import Counter
 from hashlib import sha256
-import io
-import tokenize
 
 
 def _token_fingerprint(code):

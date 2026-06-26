@@ -29,7 +29,7 @@ def _normalize_timeraw_env(env):
         return None
     if not isinstance(env, dict):
         raise TypeError(
-            "timeraw benchmark attribute 'env' must be a dict, got %r" % (type(env),)
+            f"timeraw benchmark attribute 'env' must be a dict, got {type(env)!r}"
         )
     if not env:
         return None
@@ -37,8 +37,8 @@ def _normalize_timeraw_env(env):
     for key, value in env.items():
         if value is None:
             raise TypeError(
-                "timeraw env values must not be None (key %r); omit the key instead"
-                % (key,)
+                f"timeraw env values must not be None (key {key!r}); "
+                "omit the key instead"
             )
         out[str(key)] = str(value)
     return out
@@ -114,7 +114,7 @@ class _SeparateProcessTimer:
         )
         stdout, stderr = proc.communicate(input=code.encode("utf-8"))
         if proc.returncode != 0:
-            raise RuntimeError("Subprocess failed: %s" % (stderr.decode(),))
+            raise RuntimeError(f"Subprocess failed: {stderr.decode()}")
 
         return float(stdout.decode("utf-8").strip())
 
