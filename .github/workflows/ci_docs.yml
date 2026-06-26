@@ -1,0 +1,50 @@
+name: Documentation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - "asv_runner/**"
+      - "pyproject.toml"
+      - ".github/workflows/ci_docs.yml"
+  pull_request:
+  workflow_dispatch:
+
+env:
+  PDM_BUILD_SCM_VERSION: "0.2.2.dev0"
+
+jobs:
+  build_docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install package and docs deps
+        run: |
+          python -m pip install -U pip
+          python -m pip install -e ".[docs]"
+
+      - name: Sphinx HTML
+        run: sphinx-build -b html docs/source docs/build/html
+
+      - name: Upload documentation artifact (PR preview)
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentation
+          path: docs/build/html
+
+      - name: Lychee on built HTML (informational excludes in lychee.toml)
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: >-
+            --config lychee.toml
+            --no-progress
+            docs/build/html
+          fail: false

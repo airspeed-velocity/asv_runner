@@ -33,3 +33,5 @@ CHANGELOG
 - [](genindex)
 - [](modindex)
 - [](search)
+
+- [CI and release notes](development/release.md)

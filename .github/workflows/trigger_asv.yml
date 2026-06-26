@@ -1,4 +1,8 @@
+# Invoked by /trigger-asv slash command (slashdot_trigger.yml → repository_dispatch).
+# Runs full asv suite on asv's main against this PR's asv_runner head (see asv triggered.yml).
+# Prefer PR "test_asv" matrix (pr + pypi) for fast dual coverage; this is the heavy upstream guard.
 name: Trigger asv
+
 on:
   repository_dispatch:
     types: [trigger-asv-command]
@@ -9,24 +13,21 @@ concurrency:
 
 jobs:
   triggerasv:
-    runs-on: ${{ matrix.config.os }}
-    name: ${{ matrix.config.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        config:
-          - {os: ubuntu-latest}
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
-          submodules: "recursive"
           fetch-depth: 0
-      - uses: convictional/trigger-workflow-and-wait@v1.6.5
+
+      - name: Dispatch asv triggered.yml on main
+        uses: convictional/trigger-workflow-and-wait@v1.6.5
         with:
           owner: airspeed-velocity
           repo: asv
           github_token: ${{ secrets.ASV_TOK }}
           workflow_file_name: triggered.yml
-          ref: master
+          # asv default branch is main (was wrongly "master")
+          ref: main
           wait_workflow: true
-          client_payload: '{"pr_number": "${{ github.event.client_payload.slash_command.args.named.pr_number }}"}'
+          client_payload: >-
+            {"pr_number": "${{ github.event.client_payload.slash_command.args.named.pr_number }}"}

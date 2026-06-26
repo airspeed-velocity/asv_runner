@@ -1,0 +1,27 @@
+# prek (Rust pre-commit drop-in) — preferred local/CI runner over legacy pre-commit
+exclude = """(?x)(
+    ^\\.pdm-build/|
+    ^docs/build/|
+    ^asv_runner/__pycache__/|
+    ^tests/__pycache__/
+)"""
+
+[[repos]]
+repo = "builtin"
+hooks = [
+  { id = "trailing-whitespace" },
+  { id = "end-of-file-fixer" },
+  { id = "check-yaml" },
+  { id = "check-toml" },
+  { id = "check-merge-conflict" },
+  { id = "check-added-large-files", args = ["--maxkb=1000"] },
+  { id = "check-case-conflict" },
+]
+
+[[repos]]
+repo = "https://github.com/astral-sh/ruff-pre-commit"
+rev = "v0.9.9"
+hooks = [
+  { id = "ruff", args = ["--fix"] },
+  { id = "ruff-format" },
+]

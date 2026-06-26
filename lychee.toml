@@ -1,0 +1,19 @@
+max_retries = 3
+retry_wait_time = 2
+timeout = 20
+accept = ["200..=206", "403", "429"]
+user_agent = "Mozilla/5.0 (compatible; lychee; +https://github.com/lycheeverse/lychee)"
+
+exclude = [
+  '^mailto:',
+  '^https?://localhost',
+  '^https?://127\.0\.0\.1',
+  '^https://doi\.org/',
+  '^https://asv\.readthedocs\.io/projects/asv-runner/',
+  '^https://github\.com/airspeed-velocity/asv_runner/tree/0\.',
+  '^https://github\.com/twisted/my-project/',
+  '^https://pypa\.github\.io/pipx',
+  'genindex$',
+  'modindex$',
+  'search$',
+]
