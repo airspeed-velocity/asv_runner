@@ -1,6 +1,5 @@
-# Invoked by /trigger-asv slash command (slashdot_trigger.yml → repository_dispatch).
-# Runs full asv suite on asv's main against this PR's asv_runner head (see asv triggered.yml).
-# Prefer PR "test_asv" matrix (pr + pypi) for fast dual coverage; this is the heavy upstream guard.
+# /trigger-asv → slashdot_trigger.yml → repository_dispatch trigger-asv-command → here
+# → asv .github/workflows/triggered.yml on branch main (full suite; ideally pr+pypi matrix on asv).
 name: Trigger asv
 
 on:
@@ -8,25 +7,31 @@ on:
     types: [trigger-asv-command]
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.client_payload.slash_command.args.named.pr_number || github.ref }}
   cancel-in-progress: true
 
 jobs:
   triggerasv:
     runs-on: ubuntu-latest
     steps:
+      - name: Require ASV_TOK
+        run: |
+          if [ -z "${{ secrets.ASV_TOK }}" ]; then
+            echo "ASV_TOK secret is not configured; cannot dispatch asv triggered.yml" >&2
+            exit 1
+          fi
+
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Dispatch asv triggered.yml on main
+      - name: Dispatch asv triggered.yml (main)
         uses: convictional/trigger-workflow-and-wait@v1.6.5
         with:
           owner: airspeed-velocity
           repo: asv
           github_token: ${{ secrets.ASV_TOK }}
           workflow_file_name: triggered.yml
-          # asv default branch is main (was wrongly "master")
           ref: main
           wait_workflow: true
           client_payload: >-

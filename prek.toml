@@ -1,4 +1,4 @@
-# prek (Rust pre-commit drop-in) — preferred local/CI runner over legacy pre-commit
+# Primary lint entrypoint: `prek run -a` or CI `uvx prek run -a`
 exclude = """(?x)(
     ^\\.pdm-build/|
     ^docs/build/|
@@ -22,6 +22,6 @@ hooks = [
 repo = "https://github.com/astral-sh/ruff-pre-commit"
 rev = "v0.9.9"
 hooks = [
-  { id = "ruff", args = ["--fix"] },
-  { id = "ruff-format" },
+  { id = "ruff", args = ["--fix", "--extend-exclude=docs"] },
+  { id = "ruff-format", args = ["--extend-exclude=docs"] },
 ]

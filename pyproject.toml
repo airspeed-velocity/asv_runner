@@ -48,6 +48,8 @@ build-backend = "pdm.backend"
 
 [tool.ruff]
 line-length = 88
+
+[tool.ruff.lint]
 extend-ignore = [
     "E741", # Do not use variables named "I", "O", or "l"
 ]

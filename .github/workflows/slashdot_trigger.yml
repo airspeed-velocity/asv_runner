@@ -1,13 +1,17 @@
+# Comment `/trigger-asv` on an asv_runner PR (issue_comment).
+# Requires secrets.ASV_TOK with workflow + PR comment rights on asv + asv_runner.
 name: Slash Command Dispatch
+
 on:
   issue_comment:
     types: [created]
+
 jobs:
   slashCommandDispatch:
     runs-on: ubuntu-latest
     steps:
       - name: Slash Command Dispatch
-        uses: peter-evans/slash-command-dispatch@v3
+        uses: peter-evans/slash-command-dispatch@v4
         with:
           token: ${{ secrets.ASV_TOK }}
           commands: |
