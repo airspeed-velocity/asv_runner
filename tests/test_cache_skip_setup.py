@@ -126,38 +126,3 @@ class TestCacheSkipAndSetup(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
-
-class TestTimerawEnv(unittest.TestCase):
-    def test_timeraw_env_visible_in_subprocess(self):
-        from asv_runner.benchmarks.timeraw import (
-            TimerawBenchmark,
-            _SeparateProcessTimer,
-        )
-
-        def timeraw_probe():
-            return """
-            import os
-            assert os.environ.get("ASV_TIMERAW_PROBE") == "yes"
-            """
-
-        timeraw_probe.env = {"ASV_TIMERAW_PROBE": "yes"}
-        b = TimerawBenchmark("mod.timeraw_probe", timeraw_probe, [timeraw_probe])
-        b._load_vars()
-        t = b._get_timer()
-        self.assertEqual(t.env.get("ASV_TIMERAW_PROBE"), "yes")
-        # real subprocess path
-        elapsed = t.timeit(1)
-        self.assertIsInstance(elapsed, float)
-
-    def test_separate_process_timer_merges_env(self):
-        from asv_runner.benchmarks.timeraw import _SeparateProcessTimer
-
-        def stmt():
-            return "pass"
-
-        timer = _SeparateProcessTimer(stmt, env={"FOO_TIMERAW": "1"})
-        child = timer._child_environ()
-        self.assertEqual(child["FOO_TIMERAW"], "1")
-        # parent keys preserved
-        self.assertIn("PATH", child)

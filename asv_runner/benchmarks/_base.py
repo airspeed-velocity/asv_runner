@@ -7,6 +7,46 @@ import re
 import textwrap
 from collections import Counter
 from hashlib import sha256
+import io
+import tokenize
+
+
+def _token_fingerprint(code):
+    """
+    SHA-256 of Python token stream, ignoring comments and non-semantic whitespace.
+
+    Falls back to hashing the raw UTF-8 bytes if tokenization fails (e.g. incomplete
+    snippets). Used for default benchmark ``version`` so cosmetic edits do not
+    invalidate results (asv_runner#43).
+    """
+    if not code:
+        return sha256(b"").hexdigest()
+    try:
+        tokens = []
+        readline = io.StringIO(code).readline
+        for tok in tokenize.generate_tokens(readline):
+            toknum, tokval = tok[0], tok[1]
+            if toknum in (
+                tokenize.COMMENT,
+                tokenize.NL,
+                tokenize.NEWLINE,
+                tokenize.INDENT,
+                tokenize.DEDENT,
+                tokenize.ENDMARKER,
+                tokenize.ENCODING,
+            ):
+                continue
+            tokens.append((toknum, tokval))
+        payload = repr(tokens).encode("utf-8")
+    except (tokenize.TokenError, IndentationError):
+        payload = code.encode("utf-8")
+    return sha256(payload).hexdigest()
+
+
+def code_fingerprint(code):
+    """Public alias for token-stable hashing of benchmark source (asv_runner#43)."""
+    return _token_fingerprint(code)
+
 
 
 def _get_attr(source, name, ignore_case=False):
@@ -502,8 +542,7 @@ class Benchmark:
         self.setup_cache_timeout = _get_first_attr([self._setup_cache], "timeout", None)
         self.timeout = _get_first_attr(attr_sources, "timeout", None)
         self.code = get_source_code([self.func] + self._setups + [self._setup_cache])
-        code_text = self.code.encode("utf-8")
-        code_hash = sha256(code_text).hexdigest()
+        code_hash = code_fingerprint(self.code)
         self.version = str(_get_first_attr(attr_sources, "version", code_hash))
         self.type = "base"
         self.unit = "unit"
