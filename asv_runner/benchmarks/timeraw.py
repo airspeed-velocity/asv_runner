@@ -45,11 +45,16 @@ def _normalize_timeraw_env(env):
 
 
 def _env_fingerprint(env):
-    """Stable string for incorporating ``env`` into benchmark version identity."""
+    """
+    Stable, collision-resistant string for ``env`` in benchmark version identity.
+
+    Uses ``repr(sorted(items))`` so values containing newlines or ``=`` cannot
+    alias another mapping (e.g. ``{"A": "1\\nB=2"}`` vs ``{"A": "1", "B": "2"}``).
+    """
     if not env:
         return ""
-    parts = ["%s=%s" % (k, env[k]) for k in sorted(env)]
-    return "\n".join(parts)
+    # Sorted (key, value) pairs; repr is unambiguous for str pairs on 3.7+.
+    return repr(sorted(env.items()))
 
 
 class _SeparateProcessTimer:

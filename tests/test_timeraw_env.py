@@ -91,6 +91,45 @@ class TestTimerawEnvDesign(unittest.TestCase):
         b3 = TimerawBenchmark("m.timeraw_z", timeraw_z, [timeraw_z])
         self.assertEqual(b3.version, "fixed")
 
+    def test_env_fingerprint_no_newline_or_equals_collision(self):
+        from asv_runner.benchmarks.timeraw import _env_fingerprint
+
+        # Newline in a value must not alias a second key=value line.
+        a = _env_fingerprint({"A": "1\nB=2"})
+        b = _env_fingerprint({"A": "1", "B": "2"})
+        self.assertNotEqual(a, b)
+
+        # '=' inside key or value must not alias a split mapping.
+        c = _env_fingerprint({"A": "B=1"})
+        d = _env_fingerprint({"A=B": "1"})
+        self.assertNotEqual(c, d)
+
+        def timeraw_nl():
+            return "pass"
+
+        timeraw_nl.env = {"A": "1\nB=2"}
+        b_nl = TimerawBenchmark("m.timeraw_nl", timeraw_nl, [timeraw_nl])
+
+        def timeraw_two():
+            return "pass"
+
+        timeraw_two.env = {"A": "1", "B": "2"}
+        b_two = TimerawBenchmark("m.timeraw_two", timeraw_two, [timeraw_two])
+        self.assertNotEqual(b_nl.version, b_two.version)
+
+        def timeraw_eq_val():
+            return "pass"
+
+        timeraw_eq_val.env = {"A": "B=1"}
+        b_eq_val = TimerawBenchmark("m.timeraw_eq_val", timeraw_eq_val, [timeraw_eq_val])
+
+        def timeraw_eq_key():
+            return "pass"
+
+        timeraw_eq_key.env = {"A=B": "1"}
+        b_eq_key = TimerawBenchmark("m.timeraw_eq_key", timeraw_eq_key, [timeraw_eq_key])
+        self.assertNotEqual(b_eq_val.version, b_eq_key.version)
+
 
 if __name__ == "__main__":
     unittest.main()
