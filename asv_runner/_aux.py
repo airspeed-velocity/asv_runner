@@ -178,7 +178,7 @@ def recvall(sock, size):
         data += s
         if not s:
             raise RuntimeError(
-                "did not receive data from socket " f"(size {size}, got only {data!r})"
+                f"did not receive data from socket (size {size}, got only {data!r})"
             )
     return data
 
@@ -215,4 +215,4 @@ def set_cpu_affinity_from_params(extra_params):
         try:
             set_cpu_affinity(affinity_list)
         except BaseException as exc:
-            print(f"asv: setting cpu affinity {affinity_list !r} failed: {exc !r}")
+            print(f"asv: setting cpu affinity {affinity_list!r} failed: {exc!r}")

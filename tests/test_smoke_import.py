@@ -1,11 +1,8 @@
 """Smoke tests shipped with CI-only PRs (no behavior change to the package)."""
 
-from __future__ import print_function
-
 import ast
 import pathlib
 import unittest
-
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 PKG = ROOT / "asv_runner"

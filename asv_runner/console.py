@@ -233,7 +233,7 @@ def get_answer_default(prompt, default, use_defaults=False):
 
 
 def truncate_left(s, l):
-    return f"...{s[-(l - 3):]}" if len(s) > l else s
+    return f"...{s[-(l - 3) :]}" if len(s) > l else s
 
 
 class Log:

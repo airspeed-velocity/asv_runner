@@ -47,7 +47,7 @@ def recvall(sock, size):
         data += s
         if not s:
             raise RuntimeError(
-                "did not receive data from socket " f"(size {size}, got only {data !r})"
+                f"did not receive data from socket (size {size}, got only {data!r})"
             )
     return data
 
@@ -157,7 +157,7 @@ def _run_server(args):
             cwd = command.pop("cwd")
 
             if command:
-                raise RuntimeError(f"Command contained unknown data: {command_text !r}")
+                raise RuntimeError(f"Command contained unknown data: {command_text!r}")
 
             # Spawn benchmark
             run_args = (

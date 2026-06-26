@@ -32,7 +32,6 @@ This code is useful in a benchmarking suite where new benchmarks can be added si
 adding a new submodule with an "export_as_benchmark" attribute.
 """
 
-
 import importlib
 import pkgutil
 from pathlib import Path
@@ -51,12 +50,11 @@ pkgpath = __path__
 submodule_names = [
     name for _, name, _ in pkgutil.iter_modules(pkgpath) if "_" not in name
 ]
-asv_modules = [
-    name
-    for dist in distributions()
-    if isinstance(name := dist.metadata.get("Name", None), str)
-    and name.startswith("asv_bench")
-]
+asv_modules = []
+for dist in distributions():
+    name = dist.metadata.get("Name", None)
+    if isinstance(name, str) and name.startswith("asv_bench"):
+        asv_modules.append(name)
 benchmark_types = []
 
 # Builtin modules
