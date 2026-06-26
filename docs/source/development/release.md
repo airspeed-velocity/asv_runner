@@ -45,3 +45,17 @@ git push origin main --tags   # build_wheels → PyPI on v*
 ```
 
 Prefer `prek run -a` locally (see `prek.toml`). Use `PDM_BUILD_SCM_VERSION` if editable installs hit dirty SCM wheel names.
+
+
+## `/trigger-asv` operations checklist
+
+Slash-command workflows always run from the **default branch** (`main`), not the PR head. So `trigger_asv.yml` / `slashdot_trigger.yml` fixes in this PR apply only **after #24 is merged**.
+
+1. Rotate/recreate **`ASV_TOK`** on `airspeed-velocity/asv_runner` (classic PAT or fine-grained) with:
+   - `repo` on asv_runner (reactions, contents)
+   - `actions: write` / workflow dispatch on **airspeed-velocity/asv**
+2. Merge this PR so `ref: main` (not `master`) is what `main` dispatches.
+3. Merge asv PR updating `triggered.yml` (`ASV_RUNNER_PATH`, dual pr/pypi) — branch `HaoZeke/asv:fix/triggered-asv-runner-path`.
+4. Comment `/trigger-asv` again; expect **Trigger asv** + asv **Triggered** success.
+
+Until then, **required protection is the `test_asv` matrix (pr + pypi)** on every PR — not the slash command.
