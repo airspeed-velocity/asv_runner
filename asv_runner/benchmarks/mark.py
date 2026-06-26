@@ -442,6 +442,8 @@ _BENCHMARK_ATTRS = frozenset(
         "setup_cache_timeout",
         "goal_time",
         "max_time",
+        # timeraw: injected into timed subprocess (asv#1471)
+        "env",
     }
 )
 

@@ -1,3 +1,4 @@
+import os
 import re
 import subprocess
 import sys
@@ -5,6 +6,36 @@ import textwrap
 
 from ._base import _get_first_attr
 from .time import TimeBenchmark
+
+
+def _normalize_timeraw_env(env):
+    """
+    Coerce a benchmark ``env`` attribute to a ``dict`` of string key/values.
+
+    #### Parameters
+    **env** (`dict` or `None`)
+    : Mapping of environment variable names to values, or ``None``.
+
+    #### Returns
+    **out** (`dict` or `None`)
+    : Normalized mapping, or ``None`` if ``env`` is empty/``None``.
+
+    #### Raises
+    **TypeError**
+    : If ``env`` is not a mapping of stringifiable keys/values.
+    """
+    if env is None:
+        return None
+    if not isinstance(env, dict):
+        raise TypeError(
+            "timeraw benchmark attribute 'env' must be a dict, got %r" % (type(env),)
+        )
+    if not env:
+        return None
+    out = {}
+    for key, value in env.items():
+        out[str(key)] = str(value)
+    return out
 
 
 class _SeparateProcessTimer:
@@ -26,6 +57,10 @@ class _SeparateProcessTimer:
     code to be executed, or a tuple of two strings: the code to be executed and
     the setup code to be run before timing.
 
+    **env** (`dict` or `None`)
+    : Extra environment variables merged into ``os.environ`` for the timed
+    subprocess (airspeed-velocity/asv#1471). Keys/values are strings.
+
     #### Methods
     **timeit(number)**
     : Run the function's code `number` times in a separate Python process, and
@@ -41,8 +76,18 @@ class _SeparateProcessTimer:
     '''
     ).strip()
 
-    def __init__(self, func):
+    def __init__(self, func, env=None):
         self.func = func
+        self.env = _normalize_timeraw_env(env)
+
+    def _child_environ(self):
+        """Parent environ plus optional benchmark ``env`` overrides."""
+        # Always pass an explicit mapping so overrides are reliable on all
+        # platforms (and so we do not rely on implicit Popen inheritance alone).
+        child = dict(os.environ)
+        if self.env:
+            child.update(self.env)
+        return child
 
     def timeit(self, number):
         """
@@ -90,6 +135,7 @@ class _SeparateProcessTimer:
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
+            env=self._child_environ(),
         )
         stdout, stderr = proc.communicate(input=code.encode("utf-8"))
         if proc.returncode != 0:
@@ -107,6 +153,10 @@ class TimerawBenchmark(TimeBenchmark):
     benchmark function in a separate process. This is useful for isolating the
     benchmark from any potential side effects caused by other Python code
     running in the same process.
+
+    Set an ``env`` dict attribute on the benchmark (or class) to inject
+    environment variables into the timed subprocess, e.g.
+    ``timeraw_foo.env = {"IS_PERF": "1"}`` (airspeed-velocity/asv#1471).
 
     #### Attributes
     **name_regex** (`re.Pattern`)
@@ -138,6 +188,9 @@ class TimerawBenchmark(TimeBenchmark):
         """
         TimeBenchmark._load_vars(self)
         self.number = int(_get_first_attr(self._attr_sources, "number", 1))
+        self._timeraw_env = _normalize_timeraw_env(
+            _get_first_attr(self._attr_sources, "env", None)
+        )
         del self.timer
 
     def _get_timer(self, *param):
@@ -159,7 +212,7 @@ class TimerawBenchmark(TimeBenchmark):
 
         else:
             func = self.func
-        return _SeparateProcessTimer(func)
+        return _SeparateProcessTimer(func, env=self._timeraw_env)
 
     def do_profile(self, filename=None):
         """
