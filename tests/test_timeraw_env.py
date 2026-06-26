@@ -9,9 +9,11 @@ if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
 from asv_runner.benchmarks.mark import benchmark  # noqa: E402
-from asv_runner.benchmarks.timeraw import (TimerawBenchmark,  # noqa: E402
-                                           _normalize_timeraw_env,
-                                           _SeparateProcessTimer)
+from asv_runner.benchmarks.timeraw import (  # noqa: E402
+    TimerawBenchmark,
+    _normalize_timeraw_env,
+    _SeparateProcessTimer,
+)
 
 
 class TestTimerawEnvDesign(unittest.TestCase):
