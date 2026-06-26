@@ -565,7 +565,11 @@ class Benchmark:
 
         #### Parameters
         **cache** (`Any`)
-        : Value returned by ``setup_cache``, or ``None`` if unused.
+        : Value returned by ``setup_cache``, or ``None`` if unused.  A value of
+        ``None`` means "no cache argument" (same as the historical
+        ``insert_param`` path that only ran when the pickle was not ``None``).
+        Falsy but non-``None`` caches (``0``, ``[]``, ``{}``) are still passed
+        through to setup/run/teardown.
         """
         self._current_cache = cache
 
@@ -584,9 +588,24 @@ class Benchmark:
 
     def _build_params(self):
         """Benchmark call args: optional cache first, then declared params."""
+        # Use ``is not None`` so falsy caches (0, [], {}) still prepend.
         if self._current_cache is not None:
             return (self._current_cache,) + tuple(self._current_params)
         return tuple(self._current_params)
+
+    @staticmethod
+    def _is_parameter_free_setup(setup):
+        """
+        True if ``setup`` can be called with no positional arguments.
+
+        Used so module-level ``setup(*args, **kwargs)`` runs before
+        ``setup_cache`` while class ``setup(self, n)`` waits for ``do_setup``.
+        """
+        try:
+            inspect.signature(setup).bind()
+        except TypeError:
+            return False
+        return True
 
     def check(self, root):
         """
@@ -674,11 +693,8 @@ class Benchmark:
         # included; class setups that require benchmark params run in do_setup.
         if self._setup_cache is not None:
             for setup in self._setups:
-                try:
-                    inspect.signature(setup).bind()
-                except TypeError:
-                    continue
-                setup()
+                if self._is_parameter_free_setup(setup):
+                    setup()
             return self._setup_cache()
 
     def do_run(self):

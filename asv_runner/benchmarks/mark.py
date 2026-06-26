@@ -421,6 +421,7 @@ def timeout_at(seconds):
 
 
 # Attributes ASV / asv_runner already honor on benchmark callables (asv#1469).
+# Keep aligned with readers in benchmarks/_base.py and asv's attr discovery.
 _BENCHMARK_ATTRS = frozenset(
     {
         "pretty_name",
@@ -438,6 +439,9 @@ _BENCHMARK_ATTRS = frozenset(
         "param_names",
         "skip_params",
         "skip_benchmark",
+        "setup_cache_timeout",
+        "goal_time",
+        "max_time",
     }
 )
 
