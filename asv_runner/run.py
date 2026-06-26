@@ -21,7 +21,7 @@ def _run(args):
     CPU affinity based on them. It then creates a benchmark
     from the `benchmark_id`. If the benchmark has a setup
     cache key, it loads the cache from a file and inserts it
-    into the benchmark parameters.
+    via ``set_cache`` (kept separate from declared params for skip lists).
 
     Then, the function runs the setup for the benchmark. If
     the setup indicates that the benchmark should be skipped,
@@ -59,8 +59,9 @@ def _run(args):
     if benchmark.setup_cache_key is not None:
         with open("cache.pickle", "rb") as fd:
             cache = pickle.load(fd)
-        if cache is not None:
-            benchmark.insert_param(cache)
+        benchmark.set_cache(cache)
+    else:
+        benchmark.set_cache(None)
 
     skip = benchmark.do_setup()
 

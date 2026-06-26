@@ -420,7 +420,90 @@ def timeout_at(seconds):
     return decorator
 
 
+# Attributes ASV / asv_runner already honor on benchmark callables (asv#1469).
+_BENCHMARK_ATTRS = frozenset(
+    {
+        "pretty_name",
+        "timeout",
+        "version",
+        "warmup_time",
+        "sample_time",
+        "number",
+        "repeat",
+        "rounds",
+        "min_run_count",
+        "processes",
+        "timer",
+        "params",
+        "param_names",
+        "skip_params",
+        "skip_benchmark",
+    }
+)
+
+
+def benchmark(**attrs):
+    """
+    Decorator to set benchmark metadata attributes on a function or class.
+
+    Equivalent to assigning attributes such as ``pretty_name`` or ``timeout``
+    on the callable, with optional validation of known names.
+
+    #### Parameters
+    **attrs**
+    : Keyword arguments stored as attributes on the decorated object.
+      Common keys: ``pretty_name``, ``timeout``, ``version``, ``warmup_time``,
+      ``sample_time``, ``number``, ``repeat``, ``rounds``, ``min_run_count``,
+      ``processes``, ``timer``, ``params``, ``param_names``.
+
+    #### Returns
+    **decorator** (`function`)
+    : Decorator that applies the attributes and returns the original object
+      (classes) or a thin wrapper (functions) so attributes attach reliably.
+
+    #### Example
+    ```{code-block} python
+    from asv_runner.benchmarks.mark import benchmark
+
+    @benchmark(pretty_name="keys", timeout=60)
+    def time_keys(self):
+        for key in self.d.keys():
+            pass
+    ```
+    """
+    unknown = set(attrs) - _BENCHMARK_ATTRS
+    if unknown:
+        raise TypeError(
+            "Unknown benchmark attribute(s): "
+            + ", ".join(sorted(unknown))
+            + ". Known: "
+            + ", ".join(sorted(_BENCHMARK_ATTRS))
+        )
+
+    def decorator(obj):
+        if inspect.isclass(obj):
+            for key, value in attrs.items():
+                setattr(obj, key, value)
+            return obj
+
+        if not callable(obj):
+            raise TypeError(
+                "The benchmark decorator can only be used with functions or classes"
+            )
+
+        @functools.wraps(obj)
+        def wrapper(*args, **kwargs):
+            return obj(*args, **kwargs)
+
+        for key, value in attrs.items():
+            setattr(wrapper, key, value)
+        return wrapper
+
+    return decorator
+
+
 __all__ = [
+    "benchmark",
     "parameterize",
     "skip_benchmark",
     "skip_benchmark_if",

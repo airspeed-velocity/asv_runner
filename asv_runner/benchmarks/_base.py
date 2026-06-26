@@ -513,6 +513,7 @@ class Benchmark:
         self._params = _get_first_attr(attr_sources, "params", [])
         self.param_names = _get_first_attr(attr_sources, "param_names", [])
         self._current_params = ()
+        self._current_cache = None
 
         self._params, self.param_names = _validate_params(
             self._params, self.param_names, self.name
@@ -555,18 +556,37 @@ class Benchmark:
                 f"Invalid benchmark parameter permutation index: {param_idx!r}"
             )
 
+    def set_cache(self, cache):
+        """
+        Set the setup_cache result for the benchmark.
+
+        Kept separate from ``_current_params`` so ``skip_params`` / ``@skip_for_params``
+        still match the user-declared parameter tuples (asv_runner#49).
+
+        #### Parameters
+        **cache** (`Any`)
+        : Value returned by ``setup_cache``, or ``None`` if unused.
+        """
+        self._current_cache = cache
+
     def insert_param(self, param):
         """
         Inserts a parameter at the beginning of the current parameter list.
 
-        This method modifies the `_current_params` attribute, inserting the provided
-        parameter value at the front of the parameter tuple.
+        Deprecated for setup_cache; use :meth:`set_cache` instead so skip lists
+        are not polluted with the cache object.
 
         #### Parameters
         **param** (`Any`)
         : The parameter value to insert at the front of `_current_params`.
         """
         self._current_params = tuple([param] + list(self._current_params))
+
+    def _build_params(self):
+        """Benchmark call args: optional cache first, then declared params."""
+        if self._current_cache is not None:
+            return (self._current_cache,) + tuple(self._current_params)
+        return tuple(self._current_params)
 
     def check(self, root):
         """
@@ -627,7 +647,7 @@ class Benchmark:
             return True
         try:
             for setup in self._setups:
-                setup(*self._current_params)
+                setup(*self._build_params())
         except NotImplementedError as e:
             # allow skipping test
             print(f"asv: skipped: {e!r} ")
@@ -646,17 +666,26 @@ class Benchmark:
             # Skip
             return
         for teardown in self._teardowns:
-            teardown(*self._current_params)
+            teardown(*self._build_params())
 
     def do_setup_cache(self):
+        # Run parameter-free setup hooks before setup_cache (asv#1592).
+        # Module-level ``setup(*args, **kwargs)`` (e.g. pandas random seed) is
+        # included; class setups that require benchmark params run in do_setup.
         if self._setup_cache is not None:
+            for setup in self._setups:
+                try:
+                    inspect.signature(setup).bind()
+                except TypeError:
+                    continue
+                setup()
             return self._setup_cache()
 
     def do_run(self):
         if tuple(self._current_params) in self._skip_tuples:
             # Skip
             return
-        return self.run(*self._current_params)
+        return self.run(*self._build_params())
 
     def do_profile(self, filename=None):
         """
@@ -699,5 +728,5 @@ class Benchmark:
             self.redo_setup()
 
             profile.runctx(
-                code, {"run": self.func, "params": self._current_params}, {}, filename
+                code, {"run": self.func, "params": self._build_params()}, {}, filename
             )
