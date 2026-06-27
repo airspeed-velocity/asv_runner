@@ -113,6 +113,11 @@ class _SeparateProcessTimer:
             env=self._child_environ(),
         )
         stdout, stderr = proc.communicate(input=code.encode("utf-8"))
+        # Forward timed-process stderr to this process so asv can record it
+        # (e.g. timeraw_count writes markers for number*repeat checks).
+        if stderr:
+            sys.stderr.write(stderr.decode("utf-8", errors="replace"))
+            sys.stderr.flush()
         if proc.returncode != 0:
             raise RuntimeError(f"Subprocess failed: {stderr.decode()}")
 

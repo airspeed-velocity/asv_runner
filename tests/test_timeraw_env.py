@@ -132,3 +132,25 @@ class TestTimerawEnvDesign(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestTimerawStderrForward(unittest.TestCase):
+    def test_child_stderr_reaches_parent(self):
+        """asv test_timeraw_benchmark looks for markers on the runner process stderr."""
+        import io
+
+        from asv_runner.benchmarks.timeraw import _SeparateProcessTimer
+
+        def stmt():
+            return "import sys; sys.stderr.write('MARK')"
+
+        timer = _SeparateProcessTimer(stmt)
+        buf = io.StringIO()
+        old = sys.stderr
+        try:
+            sys.stderr = buf
+            timer.timeit(3)
+        finally:
+            sys.stderr = old
+        self.assertIn("MARK", buf.getvalue())
+        self.assertEqual(buf.getvalue().count("MARK"), 3)
