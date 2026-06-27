@@ -1,35 +1,67 @@
+import os
 import re
 import subprocess
 import sys
 import textwrap
 
-from ._base import _get_first_attr
+from ._base import _get_first_attr, code_fingerprint
 from .time import TimeBenchmark
+
+
+def _normalize_timeraw_env(env):
+    """
+    Normalize a timeraw ``env`` mapping once (load time).
+
+    #### Parameters
+    **env** (`dict` or `None`)
+    : Extra environment variables for the timed subprocess, or ``None``.
+
+    #### Returns
+    **out** (`dict` or `None`)
+    : Mapping of ``str`` keys to ``str`` values, or ``None`` if unused/empty.
+
+    #### Raises
+    **TypeError**
+    : If ``env`` is not a ``dict``, or any value is ``None`` (cannot be a real
+    env entry; refusing to coerce to the string ``"None"``).
+    """
+    if env is None:
+        return None
+    if not isinstance(env, dict):
+        raise TypeError(
+            f"timeraw benchmark attribute 'env' must be a dict, got {type(env)!r}"
+        )
+    if not env:
+        return None
+    out = {}
+    for key, value in env.items():
+        if value is None:
+            raise TypeError(
+                f"timeraw env values must not be None (key {key!r}); "
+                "omit the key instead"
+            )
+        out[str(key)] = str(value)
+    return out
+
+
+def _env_fingerprint(env):
+    """
+    Stable, collision-resistant string for ``env`` in benchmark version identity.
+
+    Uses ``repr(sorted(items))`` so values containing newlines or ``=`` cannot
+    alias another mapping (e.g. ``{"A": "1\\nB=2"}`` vs ``{"A": "1", "B": "2"}``).
+    """
+    if not env:
+        return ""
+    # Sorted (key, value) pairs; repr is unambiguous for str pairs on 3.7+.
+    return repr(sorted(env.items()))
 
 
 class _SeparateProcessTimer:
     """
-    This class provides a timer that runs a given function in a separate Python
-    process.
+    Timer that runs a statement in a separate Python process via ``timeit``.
 
-    The function should return the statement to be timed. This statement is
-    executed using the Python timeit module in a new Python process. The
-    execution time is then returned.
-
-    #### Attributes
-    **subprocess_tmpl** (`str`)
-    : The template Python code to be run in the subprocess. It imports necessary
-    modules and prints the execution time of the statement.
-
-    **func** (`callable`)
-    : The function to be timed. This function should return a string of Python
-    code to be executed, or a tuple of two strings: the code to be executed and
-    the setup code to be run before timing.
-
-    #### Methods
-    **timeit(number)**
-    : Run the function's code `number` times in a separate Python process, and
-    return the execution time.
+    **env** must already be normalized (or ``None``); not re-validated here.
     """
 
     subprocess_tmpl = textwrap.dedent(
@@ -41,28 +73,18 @@ class _SeparateProcessTimer:
     '''
     ).strip()
 
-    def __init__(self, func):
+    def __init__(self, func, env=None):
         self.func = func
+        self.env = env
+
+    def _child_environ(self):
+        """Explicit child environ: parent mapping plus optional overrides."""
+        child = dict(os.environ)
+        if self.env:
+            child.update(self.env)
+        return child
 
     def timeit(self, number):
-        """
-        Run the function's code `number` times in a separate Python process, and
-        return the execution time.
-
-        #### Parameters
-        **number** (`int`)
-        : The number of times to execute the function's code.
-
-        #### Returns
-        **time** (`float`)
-        : The time it took to execute the function's code `number` times.
-
-        #### Notes
-        The function's code is executed in a separate Python process to avoid
-        interference from the parent process. The function can return either a
-        single string of code to be executed, or a tuple of two strings: the
-        code to be executed and the setup code to be run before timing.
-        """
         stmt = self.func()
         if isinstance(stmt, tuple):
             stmt, setup = stmt
@@ -75,8 +97,6 @@ class _SeparateProcessTimer:
 
         code = self.subprocess_tmpl.format(stmt=stmt, setup=setup, number=number)
 
-        # NOTE: Pass the script to be executed via STDIN.
-        # See https://github.com/airspeed-velocity/asv_runner/issues/45
         evaler = textwrap.dedent(
             """
             import sys
@@ -90,6 +110,7 @@ class _SeparateProcessTimer:
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
+            env=self._child_environ(),
         )
         stdout, stderr = proc.communicate(input=code.encode("utf-8"))
         if proc.returncode != 0:
@@ -100,58 +121,37 @@ class _SeparateProcessTimer:
 
 class TimerawBenchmark(TimeBenchmark):
     """
-    Represents a benchmark for tracking timing benchmarks run once in
-    a separate process.
+    Timing benchmark executed once per sample in a separate process.
 
-    This class inherits from `TimeBenchmark` and modifies it to run the
-    benchmark function in a separate process. This is useful for isolating the
-    benchmark from any potential side effects caused by other Python code
-    running in the same process.
-
-    #### Attributes
-    **name_regex** (`re.Pattern`)
-    : The regular expression used to match the names of functions that should be
-    considered as raw timing benchmarks.
-
-    **number** (`int`)
-    : The number of times to execute the function's code. By default, the
-    function's code is executed once.
-
-    #### Methods
-    **_load_vars()**
-    : Loads variables for the benchmark from the function's attributes or from
-    default values.
-
-    **_get_timer(*param)**
-    : Returns a timer that runs the benchmark function in a separate process.
-
-    **do_profile(filename=None)**
-    : Raises a ValueError. Raw timing benchmarks cannot be profiled.
+    Set ``env = {"KEY": "value"}`` on the function or class (or use
+    ``@benchmark(env={...})``) to inject variables into the **timed** child
+    (airspeed-velocity/asv#1471). Default ``version`` includes a fingerprint of
+    that mapping so env-only changes invalidate results.
     """
 
     name_regex = re.compile("^(Timeraw[A-Z_].+)|(timeraw_.+)$")
 
+    def __init__(self, name, func, attr_sources):
+        TimeBenchmark.__init__(self, name, func, attr_sources)
+        explicit_version = _get_first_attr(attr_sources, "version", None)
+        if explicit_version is None:
+            env_fp = _env_fingerprint(
+                _normalize_timeraw_env(_get_first_attr(attr_sources, "env", None))
+            )
+            if env_fp:
+                self.version = code_fingerprint(
+                    self.code + "\n# timeraw_env\n" + env_fp
+                )
+
     def _load_vars(self):
-        """
-        Loads variables for the benchmark from the function's attributes or from
-        default values.
-        """
         TimeBenchmark._load_vars(self)
         self.number = int(_get_first_attr(self._attr_sources, "number", 1))
+        self._timeraw_env = _normalize_timeraw_env(
+            _get_first_attr(self._attr_sources, "env", None)
+        )
         del self.timer
 
     def _get_timer(self, *param):
-        """
-        Returns a timer that runs the benchmark function in a separate process.
-
-        #### Parameters
-        **param** (`tuple`)
-        : The parameters to pass to the benchmark function.
-
-        #### Returns
-        **timer** (`_SeparateProcessTimer`)
-        : A timer that runs the function in a separate process.
-        """
         if param:
 
             def func():
@@ -159,20 +159,9 @@ class TimerawBenchmark(TimeBenchmark):
 
         else:
             func = self.func
-        return _SeparateProcessTimer(func)
+        return _SeparateProcessTimer(func, env=self._timeraw_env)
 
     def do_profile(self, filename=None):
-        """
-        Raises a ValueError. Raw timing benchmarks cannot be profiled.
-
-        #### Parameters
-        **filename** (`str`, optional)
-        : The name of the file to which to save the profile. Default is None.
-
-        #### Raises
-        **ValueError**
-        : Always. Raw timing benchmarks cannot be profiled.
-        """
         raise ValueError("Raw timing benchmarks cannot be profiled")
 
 

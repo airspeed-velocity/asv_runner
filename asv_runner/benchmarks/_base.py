@@ -1,12 +1,51 @@
 import cProfile as profile
 import inspect
+import io
 import itertools
 import math
 import os
 import re
 import textwrap
+import tokenize
 from collections import Counter
 from hashlib import sha256
+
+
+def _token_fingerprint(code):
+    """
+    SHA-256 of Python token stream, ignoring comments and non-semantic whitespace.
+
+    Falls back to hashing the raw UTF-8 bytes if tokenization fails (e.g. incomplete
+    snippets). Used for default benchmark ``version`` so cosmetic edits do not
+    invalidate results (asv_runner#43).
+    """
+    if not code:
+        return sha256(b"").hexdigest()
+    try:
+        tokens = []
+        readline = io.StringIO(code).readline
+        for tok in tokenize.generate_tokens(readline):
+            toknum, tokval = tok[0], tok[1]
+            if toknum in (
+                tokenize.COMMENT,
+                tokenize.NL,
+                tokenize.NEWLINE,
+                tokenize.INDENT,
+                tokenize.DEDENT,
+                tokenize.ENDMARKER,
+                tokenize.ENCODING,
+            ):
+                continue
+            tokens.append((toknum, tokval))
+        payload = repr(tokens).encode("utf-8")
+    except (tokenize.TokenError, IndentationError):
+        payload = code.encode("utf-8")
+    return sha256(payload).hexdigest()
+
+
+def code_fingerprint(code):
+    """Public alias for token-stable hashing of benchmark source (asv_runner#43)."""
+    return _token_fingerprint(code)
 
 
 def _get_attr(source, name, ignore_case=False):
@@ -502,8 +541,7 @@ class Benchmark:
         self.setup_cache_timeout = _get_first_attr([self._setup_cache], "timeout", None)
         self.timeout = _get_first_attr(attr_sources, "timeout", None)
         self.code = get_source_code([self.func] + self._setups + [self._setup_cache])
-        code_text = self.code.encode("utf-8")
-        code_hash = sha256(code_text).hexdigest()
+        code_hash = code_fingerprint(self.code)
         self.version = str(_get_first_attr(attr_sources, "version", code_hash))
         self.type = "base"
         self.unit = "unit"
@@ -513,6 +551,7 @@ class Benchmark:
         self._params = _get_first_attr(attr_sources, "params", [])
         self.param_names = _get_first_attr(attr_sources, "param_names", [])
         self._current_params = ()
+        self._current_cache = None
 
         self._params, self.param_names = _validate_params(
             self._params, self.param_names, self.name
@@ -555,18 +594,56 @@ class Benchmark:
                 f"Invalid benchmark parameter permutation index: {param_idx!r}"
             )
 
+    def set_cache(self, cache):
+        """
+        Set the setup_cache result for the benchmark.
+
+        Kept separate from ``_current_params`` so ``skip_params`` / ``@skip_for_params``
+        still match the user-declared parameter tuples (asv_runner#49).
+
+        #### Parameters
+        **cache** (`Any`)
+        : Value returned by ``setup_cache``, or ``None`` if unused.  A value of
+        ``None`` means "no cache argument" (same as the historical
+        ``insert_param`` path that only ran when the pickle was not ``None``).
+        Falsy but non-``None`` caches (``0``, ``[]``, ``{}``) are still passed
+        through to setup/run/teardown.
+        """
+        self._current_cache = cache
+
     def insert_param(self, param):
         """
         Inserts a parameter at the beginning of the current parameter list.
 
-        This method modifies the `_current_params` attribute, inserting the provided
-        parameter value at the front of the parameter tuple.
+        Deprecated for setup_cache; use :meth:`set_cache` instead so skip lists
+        are not polluted with the cache object.
 
         #### Parameters
         **param** (`Any`)
         : The parameter value to insert at the front of `_current_params`.
         """
         self._current_params = tuple([param] + list(self._current_params))
+
+    def _build_params(self):
+        """Benchmark call args: optional cache first, then declared params."""
+        # Use ``is not None`` so falsy caches (0, [], {}) still prepend.
+        if self._current_cache is not None:
+            return (self._current_cache,) + tuple(self._current_params)
+        return tuple(self._current_params)
+
+    @staticmethod
+    def _is_parameter_free_setup(setup):
+        """
+        True if ``setup`` can be called with no positional arguments.
+
+        Used so module-level ``setup(*args, **kwargs)`` runs before
+        ``setup_cache`` while class ``setup(self, n)`` waits for ``do_setup``.
+        """
+        try:
+            inspect.signature(setup).bind()
+        except TypeError:
+            return False
+        return True
 
     def check(self, root):
         """
@@ -627,7 +704,7 @@ class Benchmark:
             return True
         try:
             for setup in self._setups:
-                setup(*self._current_params)
+                setup(*self._build_params())
         except NotImplementedError as e:
             # allow skipping test
             print(f"asv: skipped: {e!r} ")
@@ -646,17 +723,23 @@ class Benchmark:
             # Skip
             return
         for teardown in self._teardowns:
-            teardown(*self._current_params)
+            teardown(*self._build_params())
 
     def do_setup_cache(self):
+        # Run parameter-free setup hooks before setup_cache (asv#1592).
+        # Module-level ``setup(*args, **kwargs)`` (e.g. pandas random seed) is
+        # included; class setups that require benchmark params run in do_setup.
         if self._setup_cache is not None:
+            for setup in self._setups:
+                if self._is_parameter_free_setup(setup):
+                    setup()
             return self._setup_cache()
 
     def do_run(self):
         if tuple(self._current_params) in self._skip_tuples:
             # Skip
             return
-        return self.run(*self._current_params)
+        return self.run(*self._build_params())
 
     def do_profile(self, filename=None):
         """
@@ -699,5 +782,5 @@ class Benchmark:
             self.redo_setup()
 
             profile.runctx(
-                code, {"run": self.func, "params": self._current_params}, {}, filename
+                code, {"run": self.func, "params": self._build_params()}, {}, filename
             )

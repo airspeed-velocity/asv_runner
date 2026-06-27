@@ -230,6 +230,14 @@ def _run_server(args):
         except KeyboardInterrupt:
             break
         finally:
-            conn.close()
+            # Parent may deliver SIGINT during teardown (asv#1511); do not let
+            # cleanup raise KeyboardInterrupt and spam the benchmark log.
+            try:
+                conn.close()
+            except KeyboardInterrupt:
+                pass
             if stdout_file is not None:
-                os.unlink(stdout_file)
+                try:
+                    os.unlink(stdout_file)
+                except (KeyboardInterrupt, OSError):
+                    pass
