@@ -1,4 +1,5 @@
 import os
+from hashlib import sha256
 import re
 import subprocess
 import sys
@@ -144,9 +145,12 @@ class TimerawBenchmark(TimeBenchmark):
                 _normalize_timeraw_env(_get_first_attr(attr_sources, "env", None))
             )
             if env_fp:
-                self.version = code_fingerprint(
-                    self.code + "\n# timeraw_env\n" + env_fp
-                )
+                payload = self.code + "
+# timeraw_env
+" + env_fp
+                self.version = sha256(payload.encode("utf-8")).hexdigest()
+                token = code_fingerprint(payload)
+                self.version_alts = (token,) if token != self.version else ()
 
     def _load_vars(self):
         TimeBenchmark._load_vars(self)
