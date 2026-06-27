@@ -541,11 +541,20 @@ class Benchmark:
         self.setup_cache_timeout = _get_first_attr([self._setup_cache], "timeout", None)
         self.timeout = _get_first_attr(attr_sources, "timeout", None)
         self.code = get_source_code([self.func] + self._setups + [self._setup_cache])
-        # Default version: SHA-256 of source text (asv discovery contract).
-        # code_fingerprint() remains for optional token-stable identity (timeraw env).
+        # Primary version: SHA-256 of source text (backwards compatible with asv
+        # tests and historical result keys). Token-stable fingerprint is an
+        # alternate identity for tooling/backfill (cosmetic edits share token hash).
         code_text = self.code.encode("utf-8")
         code_hash = sha256(code_text).hexdigest()
-        self.version = str(_get_first_attr(attr_sources, "version", code_hash))
+        token_hash = code_fingerprint(self.code)
+        explicit_version = _get_first_attr(attr_sources, "version", None)
+        if explicit_version is not None:
+            self.version = str(explicit_version)
+            self.version_alts = ()
+        else:
+            self.version = code_hash
+            # Prefer unique alts only (token form when it differs from wire version)
+            self.version_alts = (token_hash,) if token_hash != code_hash else ()
         self.type = "base"
         self.unit = "unit"
 

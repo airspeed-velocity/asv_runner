@@ -56,3 +56,25 @@ class TestTimingScale(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestVersionBackfill(unittest.TestCase):
+    def test_primary_version_is_sha256_code_alts_token(self):
+        from hashlib import sha256
+
+        from asv_runner.benchmarks._base import code_fingerprint
+        from asv_runner.benchmarks.track import TrackBenchmark
+
+        def track_x():
+            """doc"""
+            return 1
+
+        b = TrackBenchmark("m.track_x", track_x, [track_x])
+        # getsourcelines works for real functions in this file
+        expected = sha256(b.code.encode("utf-8")).hexdigest()
+        self.assertEqual(b.version, expected)
+        token = code_fingerprint(b.code)
+        if token != expected:
+            self.assertIn(token, b.version_alts)
+        else:
+            self.assertEqual(b.version_alts, ())
