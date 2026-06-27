@@ -8,6 +8,18 @@ This project uses [*towncrier*](https://towncrier.readthedocs.io/) and the chang
 
 <!-- towncrier release notes start -->
 
+## [0.2.4](https://github.com/airspeed-velocity/asv_runner/tree/0.2.4) - 27-06-2026
+
+### Bug Fixes
+
+- Benchmark `version` remains SHA-256 of source text for full backwards
+compatibility with asv and historical results. Token-stable
+`code_fingerprint()` is exposed via `version_alts` (and still used where
+helpful) so tooling can backfill/accept both identities across releases.
+Timeraw `env` identity also uses SHA-256 of code+env payload on the wire.
+([#53](https://github.com/airspeed-velocity/asv_runner/issues/53))
+
+
 ## [0.2.3](https://github.com/airspeed-velocity/asv_runner/tree/0.2.3) - 27-06-2026
 
 ### Bug Fixes
