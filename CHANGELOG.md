@@ -8,6 +8,18 @@ This project uses [*towncrier*](https://towncrier.readthedocs.io/) and the chang
 
 <!-- towncrier release notes start -->
 
+## [0.2.3](https://github.com/airspeed-velocity/asv_runner/tree/0.2.3) - 27-06-2026
+
+### Bug Fixes
+
+- Forward timeraw timed-subprocess stderr to the parent process so asv can
+record it (restores `timeraw_count` stderr markers). Default benchmark
+`version` is again SHA-256 of source text for compatibility with asv
+discovery tests; token-stable `code_fingerprint()` remains for optional use
+(e.g. timeraw `env` identity).
+([#52](https://github.com/airspeed-velocity/asv_runner/issues/52))
+
+
 ## [0.2.2](https://github.com/airspeed-velocity/asv_runner/tree/0.2.2) - 27-06-2026
 
 ### New Features
