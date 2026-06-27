@@ -8,6 +8,52 @@ This project uses [*towncrier*](https://towncrier.readthedocs.io/) and the chang
 
 <!-- towncrier release notes start -->
 
+## [0.2.2](https://github.com/airspeed-velocity/asv_runner/tree/0.2.2) - 27-06-2026
+
+### New Features
+
+- Add `@benchmark(**attrs)` in `asv_runner.benchmarks.mark` to set recognized
+benchmark metadata (`pretty_name`, `timeout`, …) with a typed decorator API
+(airspeed-velocity/asv#1469).
+([#1469](https://github.com/airspeed-velocity/asv_runner/issues/1469))
+- Timeraw benchmarks honor an `env` dict (also `@benchmark(env=...)`) merged
+  into
+the timed subprocess environment. Values must not be `None`. Default `version`
+fingerprints `env` so env-only changes do not reuse prior result rows
+(airspeed-velocity/asv#1471).
+([#1471](https://github.com/airspeed-velocity/asv_runner/issues/1471))
+
+### Bug Fixes
+
+- `setup_cache` results are stored with `set_cache` instead of prepending onto
+`_current_params`, so `@skip_for_params` / `skip_params` match user parameter
+tuples again when a cache is in use (asv_runner#49).
+([#49](https://github.com/airspeed-velocity/asv_runner/issues/49))
+- Fork-server cleanup ignores `KeyboardInterrupt` while closing the client
+socket or unlinking the stdout capture file, avoiding intermittent traceback
+noise when the parent delivers SIGINT during teardown
+(airspeed-velocity/asv#1511).
+([#1511](https://github.com/airspeed-velocity/asv_runner/issues/1511))
+- Parameter-free `setup` hooks (for example module-level seed helpers in pandas
+benchmarks) run before `setup_cache` so cache builds see the same environment
+as timed runs (airspeed-velocity/asv#1592).
+([#1592](https://github.com/airspeed-velocity/asv_runner/issues/1592))
+
+### Other Changes and Additions
+
+- Document and regression-test that timing samples are seconds per call after
+dividing by `number`, guarding against systematic ~50% under-reporting for
+fixed `number=1` workloads (asv_runner#33).
+([#33](https://github.com/airspeed-velocity/asv_runner/issues/33))
+- Default benchmark `version` hashes a Python token stream (comments and
+non-semantic whitespace ignored) so cosmetic edits do not invalidate results
+(asv_runner#43). Falls back to raw bytes if tokenization fails.
+([#43](https://github.com/airspeed-velocity/asv_runner/issues/43))
+- Replace a Python 3.8 walrus expression in `benchmarks/__init__.py` so the
+package parses and runs on Python 3.7 as required.
+([#48](https://github.com/airspeed-velocity/asv_runner/issues/48))
+
+
 ## [0.2.1](https://github.com/airspeed-velocity/asv_runner/tree/0.2.1) - 11-02-2024
 
 
