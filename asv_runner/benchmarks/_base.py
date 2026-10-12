@@ -445,6 +445,7 @@ def _unique_param_ids(params):
             params[i] = param
     return params
 
+
 class Benchmark:
     """
     Class representing a single benchmark. The class encapsulates
@@ -586,8 +587,13 @@ class Benchmark:
         """
         # already-set attrs: name, func, type, unit
         already_set = set(vars(self))
-        for attr_name, value in vars(func).items():
-            if attr_name.startswith('_') or attr_name in already_set or callable(value):
+        for attr_name, value in getattr(func, "__dict__", {}).items():
+            if (
+                attr_name.startswith("_")
+                or attr_name in already_set
+                or hasattr(type(self), attr_name)
+                or callable(value)
+            ):
                 # ignore all: internal, already-set attributes or callable method
                 continue
             # here should be a user-defined attribute

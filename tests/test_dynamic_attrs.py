@@ -25,6 +25,7 @@ class DummyBenchmarks:
     track_mem_bw.some_boolean = True
     track_mem_bw._hidden = "should not be copied"
     track_mem_bw.some_callback = lambda: None
+    track_mem_bw.run = "not a method"
 
 
 class TestDynamicAttrs(unittest.TestCase):
@@ -55,6 +56,9 @@ class TestDynamicAttrs(unittest.TestCase):
     def test_callable_and_private_attrs_are_ignored(self):
         assert not hasattr(self.benchmark, "_hidden")
         assert not hasattr(self.benchmark, "some_callback")
+
+    def test_class_callable_run_unchanged(self):
+        assert callable(self.benchmark.run)
 
 
 if __name__ == "__main__":
