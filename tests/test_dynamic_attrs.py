@@ -12,7 +12,7 @@ _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
-from asv_runner.benchmarks.track import TrackBenchmark
+from asv_runner.benchmarks.track import TrackBenchmark  # noqa: E402
 
 
 class DummyBenchmarks:
@@ -48,7 +48,8 @@ class TestDynamicAttrs(unittest.TestCase):
         assert self.benchmark.some_boolean is True
 
     def test_existing_attrs_are_not_overwritten(self):
-        # `unit` is resolved by TrackBenchmark via _get_first_attr(attr_sources, "unit", ...)
+        # `unit` is resolved by TrackBenchmark via
+        # _get_first_attr(attr_sources, "unit", ...)
         # *after* Benchmark.__init__ (and thus _collect_dynamic_attrs) has already run,
         # so it must end up as "MB/s", not silently reset to the "unit" default.
         assert self.benchmark.unit == "MB/s"
