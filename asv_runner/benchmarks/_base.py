@@ -575,8 +575,29 @@ class Benchmark:
         # Exported parameter representations
         self.params = _unique_param_ids(self._params)
 
+        # Collect all remaining user-defined attribute (if any)
+        self._collect_dynamic_attrs(func)
+
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.name}>"
+
+    def _collect_dynamic_attrs(self, func):
+        """
+        Capture remaining dynamic user-defined attributes in func
+        """
+        # already-set attrs: name, func, type, unit
+        already_set = set(vars(self))
+        for attr_name, value in getattr(func, "__dict__", {}).items():
+            if (
+                attr_name.startswith("_")
+                or attr_name in already_set
+                or hasattr(type(self), attr_name)
+                or callable(value)
+            ):
+                # ignore all: internal, already-set attributes or callable method
+                continue
+            # here should be a user-defined attribute
+            setattr(self, attr_name, value)
 
     def set_param_idx(self, param_idx):
         """
