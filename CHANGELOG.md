@@ -8,6 +8,14 @@ This project uses [*towncrier*](https://towncrier.readthedocs.io/) and the chang
 
 <!-- towncrier release notes start -->
 
+## [0.3.2](https://github.com/airspeed-velocity/asv_runner/tree/0.3.2) - 16-10-2026
+
+### Other Changes and Additions
+
+- Allow users to add any further custom attribute in their benchmark .py
+  scripts ([#55](https://github.com/airspeed-velocity/asv_runner/issues/55))
+
+
 ## [0.3.1](https://github.com/airspeed-velocity/asv_runner/tree/0.3.1) - 15-08-2026
 
 ### Bug Fixes
